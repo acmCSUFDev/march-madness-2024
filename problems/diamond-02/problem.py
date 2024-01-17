@@ -16,9 +16,8 @@ MIN_TIME = DateTime(2023, 10, 1)
 MAX_TIME = DateTime(2023, 12, 30, 23, 59, 59)
 MIN_STAY_TIME = TimeDelta(hours=2)
 MAX_STAY_TIME = TimeDelta(days=7)
-PEOPLE = 1000
-ENTRIES = 2000
-SUSPECTS = 100
+PEOPLE = 500
+ENTRIES = 50000
 
 
 class AccessType(str, enum.Enum):
@@ -57,29 +56,49 @@ class Problem(problem_utils.Problem):
             self.accesses[name] = []
 
         names = self.names()
-        # self.suspects = self.rand.sample(names, k=SUSPECTS)
+
+        # The accomplices will have the same entry times.
+        # It will always be in December.
+        crime_time_enter = generate_time(
+            self.rand,
+            min_time=DateTime(2023, 12, 1),
+            max_time=MAX_TIME - MAX_STAY_TIME,
+        )
+        crime_time_leave = generate_time(
+            self.rand,
+            min_time=crime_time_enter + MIN_STAY_TIME,
+            max_time=crime_time_enter + MAX_STAY_TIME,
+        )
+        crime_time = (crime_time_enter, crime_time_leave)
+        accomplices = self.rand.sample(names, k=self.rand.randint(6, 12))
 
         for _ in range(ENTRIES // 2):
             name = self.rand.choice(names)
 
-            enter_time = generate_time(self.rand, max_time=MAX_TIME - MAX_STAY_TIME)
-            leave_time = generate_time(
-                self.rand,
-                min_time=enter_time + MIN_STAY_TIME,
-                max_time=enter_time + MAX_STAY_TIME,
-            )
+            if name in accomplices and self.coin_flip(0.25):
+                times = crime_time
+            else:
+                enter_time = generate_time(self.rand, max_time=MAX_TIME - MAX_STAY_TIME)
+                leave_time = generate_time(
+                    self.rand,
+                    min_time=enter_time + MIN_STAY_TIME,
+                    max_time=enter_time + MAX_STAY_TIME,
+                )
+                times = (enter_time, leave_time)
+
+            building = self.rand.choice(self.building_list)
 
             enter = AccessEntry(
                 name=name,
-                building=self.rand.choice(self.building_list),
+                building=building,
                 type=AccessType.ENTER,
-                time=enter_time,
+                time=times[0],
             )
             leave = AccessEntry(
                 name=name,
                 building=enter.building,
                 type=AccessType.LEAVE,
-                time=leave_time,
+                time=times[1],
             )
 
             self.access_log.append(enter)
@@ -93,31 +112,72 @@ class Problem(problem_utils.Problem):
         for entry in self.access_log:
             print(entry, file=output)
 
-        # print("", file=output)
-        # print(f"suspects: {', '.join(self.suspects)}", file=output)
-
     def part1_answer(self):
-        return len(list(filter(lambda e: e.type == AccessType.LEAVE, self.access_log)))
+        return len(
+            list(
+                filter(
+                    lambda e: e.time.month == 12 and e.type == AccessType.ENTER,
+                    self.access_log,
+                )
+            )
+        )
 
     def part2_answer(self):
-        total = 0
-        for a, b in itertools.combinations(self.names(), 2):
-            a_times = self.accesses[a]
-            b_times = self.accesses[b]
-            if has_overlapping_times(a_times, b_times):
-                total += 1
-        return total
+        def slow_solution():
+            encounters: list[AccessEntry] = []
+            accomplices: list[str] = []
+            for i in range(len(self.access_log)):
+                a = self.access_log[i]
+                is_crime = False
+                for j in range(len(self.access_log)):
+                    if i == j:
+                        continue
+                    b = self.access_log[j]
+                    if a.type == b.type and a.time == b.time:
+                        is_crime = True
+                        break
+                if is_crime:
+                    encounters.append(a)
+                    if a.name not in accomplices:
+                        accomplices.append(a.name)
+            return len(encounters) * len(accomplices)
+
+        def fast_solution():
+            log_set: dict[str, list[AccessEntry]] = {}
+            for entry in self.access_log:
+                key = f"{entry.type} {entry.time}"
+                encountered = log_set.get(key, [])
+                encountered.append(entry)
+                log_set[key] = encountered
+
+            counts = sorted(
+                [len(entries) for entries in log_set.values()],
+                reverse=True,
+            )
+            colluded_items = counts[:2]
+            collided_entries = [
+                entry
+                for entries in log_set.values()
+                if len(entries) in colluded_items
+                for entry in entries
+            ]
+
+            logging.debug("\n".join([str(e) for e in collided_entries]))
+            accomplices = set([entries.name for entries in collided_entries])
+            return len(collided_entries) * len(accomplices)
+
+        # return problem_utils.run_fast_slow(fast_solution, slow_solution)
+        return fast_solution()
 
 
 def generate_name(rand: random.Random) -> str:
-    # VOWELS = "aeiou"
-    # CONSONANTS = "bcdfghjklmnpqrstvwxyz"
-    # return "".join(
-    #     rand.choices(CONSONANTS, k=1)
-    #     + rand.choices(VOWELS, k=1)
-    #     + rand.choices(CONSONANTS, k=2)
-    # )
-    return "".join(rand.choices("abcdefghijklmnopqrstuvwxyz", k=4))
+    VOWELS = "aeiou"
+    CONSONANTS = "bcdfghjklmnpqrstvwxyz"
+    return "".join(
+        rand.choices(CONSONANTS, k=1)
+        + rand.choices(VOWELS, k=1)
+        + rand.choices(CONSONANTS, k=2)
+    )
 
 
 def generate_time(
@@ -138,19 +198,6 @@ def generate_time(
             round(max_time.timestamp()),
         )
     )
-
-
-def has_overlapping_times(
-    a: list[tuple[DateTime, DateTime]],
-    b: list[tuple[DateTime, DateTime]],
-) -> tuple[int, int] | None:
-    for i in range(len(a)):
-        a_start, a_end = a[i]
-        for j in range(len(b)):
-            b_start, b_end = b[j]
-            if a_start < b_end and b_start < a_end:
-                return (i, j)
-    return None
 
 
 if __name__ == "__main__":

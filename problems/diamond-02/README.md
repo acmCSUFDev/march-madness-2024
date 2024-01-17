@@ -41,19 +41,22 @@ Each line represents a single access log entry. Within each entry:
   access log entry. It is formatted as `YYYY-MM-DD HH:MM:SS`.
 
 The access log entries may be in any order. In the above example, the entry
-where `bob` exited `CS` occurred before the entry where he entered
-`E`.
+where `bob` exited `CS` occurred before the entry where he entered `E`.
+
+The logs only contain entries for the month of October, November, and December
+2023. The logs do not contain entries for any other months.
 
 # Part 1
 
-We have managed to narrowed down a list of suspects, but we need more evidence
-to identify the trespasser. **What is the total number of times that everyone
-has exited the `CS` building?**
+We have received some new information about the case. According to an estimate
+from the security system, the trespassing occurred around December. **What is
+the total number of times that everyone has entered a building in December?**
 
 # Part 2
 
-After further investigations, we've discovered that there were not just one, but
-two trespassers! One trespasser was seen entering a building while another
-trespasser was still inside. In other words, there are overlapping access logs
-for any two different people. **What is the total number of overlapping access logs
-for any two trespassers?**
+After further investigations, we have discovered that there were not just one,
+but multiple trespassers! In fact, we are fairly sure that a whole party broke
+in! These people all entered different buildings, but they all entered at the
+same time. **What is the total number of people who entered a building at the
+same time multiplied by the number of access log entries that occurred at that
+time?**

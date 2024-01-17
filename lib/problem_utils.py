@@ -6,7 +6,7 @@ import logging
 import contextlib
 from io import StringIO
 from abc import ABC, abstractmethod
-from typing import IO, Type
+from typing import IO, Type, Callable
 
 
 class Problem(ABC):
@@ -14,6 +14,12 @@ class Problem(ABC):
 
     def __init__(self, seed=0) -> None:
         self.rand = random.Random(seed)
+
+    def coin_flip(self, p: float) -> bool:
+        """
+        Returns True with probability p, where p is within [0, 1]
+        """
+        return self.rand.random() < p
 
     @abstractmethod
     def generate_input(self, output: IO | None = None) -> None:
@@ -38,6 +44,19 @@ def measure(what: str, enabled=True):
     yield
     runtime = time.process_time_ns() - start_time
     logging.debug(f"{what} took {runtime / 1000000}ms")
+
+
+def run_fast_slow(
+    fast: Callable[[], int],
+    slow: Callable[[], int],
+) -> int:
+    with measure("fast solution"):
+        a = fast()
+    with measure("slow solution"):
+        b = slow()
+    if a != b:
+        raise Exception(f"fast solution {a} != slow solution {b}")
+    return a
 
 
 def main(ProblemClass: Type[Problem]) -> None:
