@@ -1,11 +1,11 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"io"
+	"log"
 	"os"
 	"slices"
-	"strings"
 
 	"github.com/kavehmz/prime"
 )
@@ -17,11 +17,10 @@ type Run struct {
 }
 
 func main() {
-	in, _ := io.ReadAll(os.Stdin)
-	lines := strings.Split(string(in), "\n")
-
-	runs := make([]Run, 0, len(lines))
-	for _, line := range lines {
+	scanner := bufio.NewScanner(os.Stdin)
+	runs := make([]Run, 0, 1_000_000)
+	for scanner.Scan() {
+		line := scanner.Text()
 		if len(line) == 0 {
 			continue
 		}
@@ -31,6 +30,11 @@ func main() {
 		runs = append(runs, Run{name, from, to})
 	}
 
+	// part1(runs)
+	part2(runs)
+}
+
+func part1(runs []Run) {
 	var maxNum int
 	for _, run := range runs {
 		if run.To > maxNum {
@@ -39,6 +43,7 @@ func main() {
 	}
 
 	primes64 := prime.Primes(uint64(maxNum))
+	log.Printf("Found %d primes", len(primes64))
 	primes := make([]int, len(primes64))
 	for i, p := range primes64 {
 		primes[i] = int(p)
@@ -51,12 +56,14 @@ func main() {
 	sum := make(map[string]int)
 	for _, run := range runs {
 		primeStartIx := findNearestPrimeIndex(run.From)
-		var s int
-		for i := primeStartIx; i < len(primes) && primes[i] <= run.To; i++ {
-			s++
+		primeEndIx := min(findNearestPrimeIndex(run.To), len(primes)-1)
+		for primes[primeEndIx] > run.To {
+			primeEndIx--
 		}
-		sum[run.Name] += s
+		sum[run.Name] += primeEndIx - primeStartIx + 1
 	}
+
+	log.Printf("Found %d sums", len(sum))
 
 	var maxSum int
 	var maxName string
@@ -68,4 +75,11 @@ func main() {
 	}
 
 	fmt.Printf("%s %d\n", maxName, maxSum)
+}
+
+func part2(runs []Run) {
+	for i := range runs {
+		runs[i].To *= 138739
+	}
+	part1(runs)
 }
