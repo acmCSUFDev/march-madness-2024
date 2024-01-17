@@ -19,6 +19,11 @@
 					python3Packages.black
 					pyright
 				];
+
+				shellHook = ''
+					python3 -m venv .venv
+					source .venv/bin/activate
+				'';
 			};
 		}
 	);
