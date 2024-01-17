@@ -24,12 +24,12 @@ Here is an example of the access logs:
 ```
 alice -> CS [2023-10-01 08:00:00]
 alice <- CS [2023-10-01 09:00:00]
-bob <- CS [2023-10-01 09:00:00]
+bob <- E [2023-10-01 09:00:00]
 bob -> E [2023-10-01 08:00:00]
 charlie -> TSU [2023-10-01 08:00:00]
-charlie -> TSU [2023-10-01 09:00:00]
+charlie <- TSU [2023-10-01 09:00:00]
 
-suspects: alice, bob, charlie
+suspects: alice, charlie
 ```
 
 Each line represents a single access log entry. Within each entry:
@@ -44,21 +44,16 @@ The access log entries may be in any order. In the above example, the entry
 where `bob` exited `CS` occurred before the entry where he entered
 `E`.
 
-At the bottom of the access logs, there is a list of suspects. These are the
-people who may have trespassed. In the above example, `alice`, `bob`, and
-`charlie` are the suspects.
-
 # Part 1
 
 We have managed to narrowed down a list of suspects, but we need more evidence
-to identify the trespasser. **What is the total number of times that these
-suspects have entered and exited the `CS` building?**
+to identify the trespasser. **What is the total number of times that everyone
+has exited the `CS` building?**
 
 # Part 2
 
-A partial security report came back, and we didn't have enough evidence to
-support our suspicions. You will have to investigate further.
-
-Go through the access logs and find out who the trespasser is. **What is the
-hour, minute and second of the intruding access log entry?** Format your answer
-as `HHMMSS` (24-hour); e.g. `21:45:00` for `9:45pm`.
+After further investigations, we've discovered that there were not just one, but
+two trespassers! One trespasser was seen entering a building while another
+trespasser was still inside. In other words, there are overlapping access logs
+for any two different people. **What is the total number of overlapping access logs
+for any two trespassers?**
