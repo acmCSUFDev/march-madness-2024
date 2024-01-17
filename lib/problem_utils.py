@@ -1,6 +1,9 @@
 import argparse
 import random
 import json
+import time
+import logging
+import contextlib
 from io import StringIO
 from abc import ABC, abstractmethod
 from typing import IO, Type
@@ -25,9 +28,22 @@ class Problem(ABC):
         pass
 
 
+@contextlib.contextmanager
+def measure(what: str, enabled=True):
+    if not enabled:
+        yield
+        return
+
+    start_time = time.process_time_ns()
+    yield
+    runtime = time.process_time_ns() - start_time
+    logging.debug(f"{what} took {runtime / 1000000}ms")
+
+
 def main(ProblemClass: Type[Problem]) -> None:
     parser = argparse.ArgumentParser(description="Generate input and answers")
     parser.add_argument("--seed", type=int, default=0, help="random seed")
+    parser.add_argument("--debug", action="store_true", help="enable debug logging")
     parser.add_argument("--part1", action="store_true", help="print part 1 answer")
     parser.add_argument("--part2", action="store_true", help="print part 2 answer")
     parser.add_argument(
@@ -38,7 +54,11 @@ def main(ProblemClass: Type[Problem]) -> None:
 
     args = parser.parse_args()
 
-    problem = ProblemClass(args.seed)
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    with measure("initialization"):
+        problem = ProblemClass(args.seed)
 
     if args.json:
         input = StringIO()
@@ -52,11 +72,14 @@ def main(ProblemClass: Type[Problem]) -> None:
         return
 
     if args.part1:
-        print(problem.part1_answer())
+        with measure("part 1 solution"):
+            print(problem.part1_answer())
         return
 
     if args.part2:
-        print(problem.part2_answer())
+        with measure("part 2 solution"):
+            print(problem.part2_answer())
         return
 
-    problem.generate_input()
+    with measure("input generation"):
+        problem.generate_input()
