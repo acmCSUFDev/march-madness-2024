@@ -2,6 +2,9 @@ package problem
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -72,4 +75,53 @@ func parseProblemREADME(md string) (ProblemDescription, error) {
 		Part1: part1,
 		Part2: part2,
 	}, nil
+}
+
+// ParsePythonProblemDirectory parses a Python problem directory. The directory
+// structure is assumed to be:
+//   - README.md
+//   - problem.py
+//
+// The working directory must be given, as it determines the environment in
+// which the Python script is executed. The README file is assumed to be in
+// that directory.
+func ParsePythonProblemDirectory(pwd, path string, logger *slog.Logger) (ProblemDescription, error) {
+	readmeFile, err := os.ReadFile(filepath.Join(pwd, path, "README.md"))
+	if err != nil {
+		return ProblemDescription{}, fmt.Errorf("failed to read README.md: %w", err)
+	}
+
+	if _, err = os.Stat(filepath.Join(pwd, path, "problem.py")); err != nil {
+		return ProblemDescription{}, fmt.Errorf("failed to stat problem.py: %w", err)
+	}
+
+	pythonInput, err := NewPythonInputGenerator(pwd, path, logger)
+	if err != nil {
+		return ProblemDescription{}, fmt.Errorf("failed to create Python input generator: %w", err)
+	}
+
+	return NewProblemDescription(string(readmeFile), pythonInput)
+}
+
+// MustParsePythonProblemDirectory is like ParsePythonProblemDirectory, but
+// panics if an error occurs.
+func MustParsePythonProblemDirectory(pwd, path string, logger *slog.Logger) ProblemDescription {
+	desc, err := ParsePythonProblemDirectory(pwd, path, logger)
+	if err != nil {
+		panic(err)
+	}
+	return desc
+}
+
+// WrapAllProblemsWithInputCache wraps the given problem descriptions with an
+// input cache using [CachedInputGenerator].
+func WrapAllProblemsWithInputCache(cacheDBPath string, problems []ProblemDescription) error {
+	for i := range problems {
+		input, err := NewCachedInputGenerator(cacheDBPath, problems[i].Input)
+		if err != nil {
+			return fmt.Errorf("failed to wrap problem %d with input cache: %w", i, err)
+		}
+		problems[i].Input = input
+	}
+	return nil
 }
