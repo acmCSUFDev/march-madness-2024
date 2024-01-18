@@ -7,6 +7,7 @@ require (
 	github.com/dgraph-io/badger/v4 v4.2.0
 	github.com/kavehmz/prime v1.0.0
 	github.com/neilotoole/slogt v1.1.0
+	libdb.so/lazymigrate v0.0.0-20240118091250-725619470291
 	modernc.org/sqlite v1.28.0
 )
 

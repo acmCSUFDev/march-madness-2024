@@ -3,7 +3,7 @@ CREATE TABLE teams (
 	created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	invite_code TEXT NOT NULL,
 	accepting_members BOOLEAN NOT NULL DEFAULT TRUE,
-	points INTEGER NOT NULL DEFAULT 0);
+	points REAL NOT NULL DEFAULT 0);
 
 CREATE TABLE team_members (
 	team_name TEXT NOT NULL,
