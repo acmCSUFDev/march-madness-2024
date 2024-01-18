@@ -15,6 +15,8 @@
 					gopls
 					go-tools
 
+					sqlc
+
 					python3
 					python3Packages.black
 					pyright
