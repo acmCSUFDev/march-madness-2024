@@ -3,15 +3,24 @@ module libdb.so/february-frenzy
 go 1.21.5
 
 require (
+	aidanwoods.dev/go-paseto v1.5.1
 	github.com/alecthomas/assert/v2 v2.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
+	github.com/go-chi/chi/v5 v5.0.11
+	github.com/go-chi/httplog/v2 v2.0.9
 	github.com/kavehmz/prime v1.0.0
+	github.com/lmittmann/tint v1.0.3
 	github.com/neilotoole/slogt v1.1.0
+	github.com/spf13/pflag v1.0.3
+	libdb.so/ctxt v0.0.0-20240118132135-5a5840831d74
+	libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5
 	libdb.so/lazymigrate v0.0.0-20240118091250-725619470291
+	libdb.so/tmplutil v0.0.0-20240118131023-501c4ee479ae
 	modernc.org/sqlite v1.28.0
 )
 
 require (
+	aidanwoods.dev/go-result v0.1.0 // indirect
 	github.com/alecthomas/repr v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
@@ -29,12 +38,13 @@ require (
 	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/remyoudompheng/bigfft v0.0.0-20230129092748-24d4a6f8daec // indirect
+	github.com/stretchr/testify v1.8.4 // indirect
 	go.opencensus.io v0.22.5 // indirect
-	golang.org/x/mod v0.3.0 // indirect
-	golang.org/x/net v0.7.0 // indirect
-	golang.org/x/sys v0.9.0 // indirect
-	golang.org/x/tools v0.0.0-20210106214847-113979e3529a // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
+	golang.org/x/mod v0.8.0 // indirect
+	golang.org/x/net v0.10.0 // indirect
+	golang.org/x/sys v0.15.0 // indirect
+	golang.org/x/tools v0.6.0 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 	lukechampine.com/uint128 v1.2.0 // indirect
 	modernc.org/cc/v3 v3.40.0 // indirect
