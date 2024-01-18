@@ -10,7 +10,7 @@ CREATE TABLE team_members (
 	user_name TEXT NOT NULL,
 	joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	is_leader BOOLEAN NOT NULL DEFAULT FALSE,
-	PRIMARY KEY (team_name, user_id),
+	PRIMARY KEY (team_name, user_name),
 	FOREIGN KEY (team_name) REFERENCES teams (team_name));
 
 CREATE TABLE team_submit_attempts (
