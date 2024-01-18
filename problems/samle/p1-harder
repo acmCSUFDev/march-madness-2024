@@ -1,0 +1,34 @@
+### Part 1
+
+Diamond, Justin and Pillow loves running. 
+
+Every time they run, the record which street they start on and where they finish.
+
+They have been training for a long time such that it only take them 1 foot step to clear a street!
+
+Example:
+```
+Diamond ran 1 to 10
+# Diamond took 1 step each for each street from 1th to 10th (inclusive)
+```
+
+Diamond is fascinated by prime numbers, her two favorites are 19 and 419 and "xor" bit operation
+
+For each person, if xor=1, what is the xor of all the steps they have taken between those two prime streets (inclusive)
+
+Give the max out of the 3 friends
+
+Example:
+```
+In this example, Diamond's favorite primes are 3 and 7
+
+Diamond ran 1 to 10
+Justin ran 2 to 5
+Pillow ran 4 to 9
+
+Diamond: 5 steps total betwen 3 and 7
+Justin:  3 steps total between 3 and 7
+Pillow:  4 steps total between 3 and 7
+
+Here 5 is the answer!
+```
