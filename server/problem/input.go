@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/crc32"
+	"io"
 	"log/slog"
 	"math"
 	"os/exec"
@@ -12,8 +13,8 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
-
 	badgeropts "github.com/dgraph-io/badger/v4/options"
+	"libdb.so/february-frenzy/server/internal/badgerstub"
 )
 
 // ProblemInput is the expected input and output for a problem.
@@ -90,23 +91,9 @@ type CachedInputGenerator struct {
 	generator InputGenerator
 }
 
-// NewCachedInputGenerator creates a new cached input generator.
-func NewCachedInputGenerator(dbPath string, generator InputGenerator) (*CachedInputGenerator, error) {
-	opts := badger.DefaultOptions(dbPath)
-	opts.Compression = badgeropts.ZSTD
-	opts.ZSTDCompressionLevel = 1
-
-	db, err := badger.Open(opts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
-
-	return NewCachedInputGeneratorFromDB(db, generator), nil
-}
-
-// NewCachedInputGeneratorFromDB creates a new cached input generator from an
-// existing database.
-func NewCachedInputGeneratorFromDB(db *badger.DB, generator InputGenerator) *CachedInputGenerator {
+// NewCachedInputGenerator creates a new cached input generator from an existing
+// database.
+func NewCachedInputGenerator(db *badger.DB, generator InputGenerator) *CachedInputGenerator {
 	return &CachedInputGenerator{cache: db, generator: generator}
 }
 
@@ -152,6 +139,27 @@ func (c *CachedInputGenerator) GenerateInput(ctx context.Context, seed int) (Pro
 	}
 
 	return input, nil
+}
+
+// WrapAllProblemsWithInputCache wraps the given problem descriptions with an
+// input cache using [CachedInputGenerator].
+func WrapAllProblemsWithInputCache(cacheDBPath string, problems []Problem, logger *slog.Logger) (io.Closer, error) {
+	opts := badger.DefaultOptions(cacheDBPath)
+	opts.Compression = badgeropts.ZSTD
+	opts.ZSTDCompressionLevel = 1
+	opts.Logger = badgerstub.New(logger)
+
+	db, err := badger.Open(opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to open database: %w", err)
+	}
+
+	for i := range problems {
+		input := NewCachedInputGenerator(db, problems[i].Input)
+		problems[i].Input = input
+	}
+
+	return db, nil
 }
 
 // StringToSeed converts a string to a seed.

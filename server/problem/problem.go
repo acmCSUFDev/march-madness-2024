@@ -56,16 +56,22 @@ func parseProblemREADME(md string) (Problem, error) {
 	md = md[titleIx[1]:]
 	md = strings.TrimSpace(md)
 
-	// Remove the "Part 1" subtitle.
-	part1Idx := rePart1.FindStringIndex(md)
-	part1 := strings.TrimSpace(md[:part1Idx[0]]) +
-		"\n\n" +
-		strings.TrimSpace(md[part1Idx[1]:])
+	part1 := md
+	// Remove the "Part 1" subtitle, if any.
+	if part1Idx := rePart1.FindStringIndex(md); part1Idx != nil {
+		part1 = strings.TrimSpace(md[:part1Idx[0]]) +
+			"\n\n" +
+			strings.TrimSpace(md[part1Idx[1]:])
+	}
 
 	// Extract the part 2 description.
-	part2Idx := rePart2.FindStringIndex(part1)
-	part2 := part1[part2Idx[1]:]
-	part1 = part1[:part2Idx[0]]
+	part2 := ""
+	if part2Idx := rePart2.FindStringIndex(part1); part2Idx != nil {
+		part2 = part1[part2Idx[1]:]
+		part1 = part1[:part2Idx[0]]
+	} else {
+		return Problem{}, fmt.Errorf("failed to find part 2 in README")
+	}
 
 	part1 = strings.TrimSpace(part1)
 	part2 = strings.TrimSpace(part2)
@@ -111,17 +117,4 @@ func MustParsePythonProblemDirectory(pwd, path string, logger *slog.Logger) Prob
 		panic(err)
 	}
 	return desc
-}
-
-// WrapAllProblemsWithInputCache wraps the given problem descriptions with an
-// input cache using [CachedInputGenerator].
-func WrapAllProblemsWithInputCache(cacheDBPath string, problems []Problem) error {
-	for i := range problems {
-		input, err := NewCachedInputGenerator(cacheDBPath, problems[i].Input)
-		if err != nil {
-			return fmt.Errorf("failed to wrap problem %d with input cache: %w", i, err)
-		}
-		problems[i].Input = input
-	}
-	return nil
 }
