@@ -15,33 +15,31 @@ you must utilize your coding prowess to decipher the logs and unveil the
 trespassers' identities.
 
 The access logs are your key to solving the mystery. Each log provides a
-snapshot of individuals entering and exiting various buildings on campus. The
-logs are timestamped, so you can determine the exact time of each entry.
+snapshot of individuals entering  various buildings on campus. The logs are
+timestamped, so you can determine the exact time of each entry.
 
 
 Here is an example of the access logs:
 
 ```
-alice -> CS [2023-10-01 08:00:00]
-alice <- CS [2023-10-01 09:00:00]
-bob <- E [2023-10-01 09:00:00]
-bob -> E [2023-10-01 08:00:00]
-charlie -> TSU [2023-10-01 08:00:00]
-charlie <- TSU [2023-10-01 09:00:00]
+alice -> CS at 2023-10-02 08:00:00
+bob -> E at 2023-10-01 08:00:00
+charlie -> TSU at 2023-10-01 08:00:00
 
 suspects: alice, charlie
 ```
 
 Each line represents a single access log entry. Within each entry:
 
-- The first word is the name of the person who accessed the building.
-- The second word is either `->` or `<-`, denoting whether the person entered or
-  exited the building.
-- The third word is enclosed in square brackets, and is the timestamp of the
+- The first variable is the name of the person who accessed the building.
+- The second variable is the name of the building that was accessed.
+- The third variable is enclosed in square brackets, and is the timestamp of the
   access log entry. It is formatted as `YYYY-MM-DD HH:MM:SS`.
 
 The access log entries may be in any order. In the above example, the entry
-where `bob` exited `CS` occurred before the entry where he entered `E`.
+where `alice` accessed the `CS` building is listed first, but it happened
+after the entry where `bob` accessed the `E` building, even though the `bob`
+entry occurred prior.
 
 The logs only contain entries for the month of October, November, and December
 2023. The logs do not contain entries for any other months.

@@ -14,33 +14,22 @@ from datetime import datetime as DateTime, timedelta as TimeDelta
 BUILDING_LIST_FILE = os.path.join(os.path.dirname(__file__), "csuf-buildings.txt")
 MIN_TIME = DateTime(2023, 10, 1)
 MAX_TIME = DateTime(2023, 12, 30, 23, 59, 59)
-MIN_STAY_TIME = TimeDelta(hours=2)
-MAX_STAY_TIME = TimeDelta(days=7)
 PEOPLE = 500
 ENTRIES = 50000
-
-
-class AccessType(str, enum.Enum):
-    ENTER = "->"
-    LEAVE = "<-"
-
-    def __str__(self) -> str:
-        return self.value
 
 
 class AccessEntry(pydantic.BaseModel):
     name: str
     building: str
-    type: AccessType
     time: DateTime
 
     def __str__(self) -> str:
         time = self.time.strftime("%Y-%m-%d %H:%M:%S")
-        return f"{self.name} {self.type} {self.building} [{time}]"
+        return f"{self.name} -> {self.building} at {time}"
 
 
 class Problem(problem_utils.Problem):
-    accesses: dict[str, list[tuple[DateTime, DateTime]]] = {}
+    accesses: dict[str, list[DateTime]] = {}
     suspects: list[str] = []
     access_log: list[AccessEntry] = []
     building_list = open(BUILDING_LIST_FILE, "r").read().splitlines()
@@ -59,51 +48,28 @@ class Problem(problem_utils.Problem):
 
         # The accomplices will have the same entry times.
         # It will always be in December.
-        crime_time_enter = generate_time(
+        crime_time = generate_time(
             self.rand,
             min_time=DateTime(2023, 12, 1),
-            max_time=MAX_TIME - MAX_STAY_TIME,
         )
-        crime_time_leave = generate_time(
-            self.rand,
-            min_time=crime_time_enter + MIN_STAY_TIME,
-            max_time=crime_time_enter + MAX_STAY_TIME,
-        )
-        crime_time = (crime_time_enter, crime_time_leave)
         accomplices = self.rand.sample(names, k=self.rand.randint(6, 12))
 
-        for _ in range(ENTRIES // 2):
+        for _ in range(ENTRIES):
             name = self.rand.choice(names)
 
             if name in accomplices and self.coin_flip(0.25):
-                times = crime_time
+                time = crime_time
             else:
-                enter_time = generate_time(self.rand, max_time=MAX_TIME - MAX_STAY_TIME)
-                leave_time = generate_time(
-                    self.rand,
-                    min_time=enter_time + MIN_STAY_TIME,
-                    max_time=enter_time + MAX_STAY_TIME,
-                )
-                times = (enter_time, leave_time)
+                time = generate_time(self.rand)
 
-            building = self.rand.choice(self.building_list)
-
-            enter = AccessEntry(
+            entry = AccessEntry(
                 name=name,
-                building=building,
-                type=AccessType.ENTER,
-                time=times[0],
-            )
-            leave = AccessEntry(
-                name=name,
-                building=enter.building,
-                type=AccessType.LEAVE,
-                time=times[1],
+                time=time,
+                building=self.rand.choice(self.building_list),
             )
 
-            self.access_log.append(enter)
-            self.access_log.append(leave)
-            self.accesses[name].append((enter.time, leave.time))
+            self.access_log.append(entry)
+            self.accesses[name].append(time)
 
     def names(self) -> list[str]:
         return list(self.accesses.keys())
@@ -116,7 +82,7 @@ class Problem(problem_utils.Problem):
         return len(
             list(
                 filter(
-                    lambda e: e.time.month == 12 and e.type == AccessType.ENTER,
+                    lambda e: e.time.month == 12,
                     self.access_log,
                 )
             )
@@ -133,7 +99,7 @@ class Problem(problem_utils.Problem):
                     if i == j:
                         continue
                     b = self.access_log[j]
-                    if a.type == b.type and a.time == b.time:
+                    if a.time == b.time:
                         is_crime = True
                         break
                 if is_crime:
@@ -145,7 +111,7 @@ class Problem(problem_utils.Problem):
         def fast_solution():
             log_set: dict[str, list[AccessEntry]] = {}
             for entry in self.access_log:
-                key = f"{entry.type} {entry.time}"
+                key = f"{entry.time}"
                 encountered = log_set.get(key, [])
                 encountered.append(entry)
                 log_set[key] = encountered
