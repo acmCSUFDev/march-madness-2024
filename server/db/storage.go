@@ -30,8 +30,8 @@ type Database struct {
 	db *sql.DB
 }
 
-// NewDatabase creates a new database at the given path.
-func NewDatabase(path string) (*Database, error) {
+// Open creates a new database at the given path.
+func Open(path string) (*Database, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return nil, err
@@ -39,8 +39,8 @@ func NewDatabase(path string) (*Database, error) {
 	return newDatabase(db)
 }
 
-// NewDatabaseInMemory creates a new in-memory database.
-func NewDatabaseInMemory() (*Database, error) {
+// NewInMemory creates a new in-memory database.
+func NewInMemory() (*Database, error) {
 	db, _ := sql.Open("sqlite", ":memory:")
 	return newDatabase(db)
 }
@@ -59,4 +59,9 @@ func newDatabase(db *sql.DB) (*Database, error) {
 		Queries: New(db),
 		db:      db,
 	}, nil
+}
+
+// Close closes the database.
+func (db *Database) Close() error {
+	return db.db.Close()
 }
