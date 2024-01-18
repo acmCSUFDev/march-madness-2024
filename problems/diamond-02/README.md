@@ -44,13 +44,13 @@ entry occurred prior.
 The logs only contain entries for the month of October, November, and December
 2023. The logs do not contain entries for any other months.
 
-# Part 1
+## Part 1
 
 We have received some new information about the case. According to an estimate
 from the security system, the trespassing occurred around December. **What is
 the total number of times that everyone has entered a building in December?**
 
-# Part 2
+## Part 2
 
 After further investigations, we have discovered that there were not just one,
 but multiple trespassers! In fact, we are fairly sure that a whole party broke
