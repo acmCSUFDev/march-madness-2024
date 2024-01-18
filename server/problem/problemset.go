@@ -5,7 +5,7 @@ import "time"
 // ProblemSet is a set of problems. It is a collection of problems that
 // can be solved in any order. It supports timed releases of problems.
 type ProblemSet struct {
-	problems []ProblemDescription
+	problems []Problem
 	schedule *ProblemReleaseSchedule
 	now      func() time.Time
 }
@@ -19,7 +19,7 @@ type ProblemReleaseSchedule struct {
 }
 
 // NewProblemSet creates a new problem set.
-func NewProblemSet(problems []ProblemDescription) *ProblemSet {
+func NewProblemSet(problems []Problem) *ProblemSet {
 	return &ProblemSet{
 		problems: problems,
 		now:      time.Now,
@@ -27,7 +27,7 @@ func NewProblemSet(problems []ProblemDescription) *ProblemSet {
 }
 
 // NewProblemSetWithSchedule creates a new problem set with a release schedule.
-func NewProblemSetWithSchedule(problems []ProblemDescription, schedule *ProblemReleaseSchedule) *ProblemSet {
+func NewProblemSetWithSchedule(problems []Problem, schedule *ProblemReleaseSchedule) *ProblemSet {
 	return &ProblemSet{
 		problems: problems,
 		schedule: schedule,
@@ -36,16 +36,16 @@ func NewProblemSetWithSchedule(problems []ProblemDescription, schedule *ProblemR
 }
 
 // Problems returns all available problems in the set.
-func (p *ProblemSet) Problems() []ProblemDescription {
+func (p *ProblemSet) Problems() []Problem {
 	return p.problems[:p.AvailableProblems()]
 }
 
 // Problem returns the problem at the given index. If the index is accessing a
 // problem that is not available yet, it returns false.
-func (p *ProblemSet) Problem(i int) (ProblemDescription, bool) {
+func (p *ProblemSet) Problem(i int) (Problem, bool) {
 	n := p.AvailableProblems()
 	if i >= n {
-		return ProblemDescription{}, false
+		return Problem{}, false
 	}
 	return p.problems[i], true
 }
