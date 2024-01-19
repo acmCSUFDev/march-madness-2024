@@ -278,7 +278,20 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 	http.Redirect(w, r, "/", http.StatusSeeOther)
 }
 
+type problemsPageData struct {
+	frontend.ComponentContext
+	Problems *problem.ProblemSet
+}
+
 func (s *Server) listProblems(w http.ResponseWriter, r *http.Request) {
+	u := getAuthentication(r)
+	s.renderTemplate(w, "problems", problemsPageData{
+		ComponentContext: frontend.ComponentContext{
+			TeamName: u.TeamName,
+			Username: u.Username,
+		},
+		Problems: s.problems,
+	})
 }
 
 func (s *Server) viewProblem(w http.ResponseWriter, r *http.Request) {

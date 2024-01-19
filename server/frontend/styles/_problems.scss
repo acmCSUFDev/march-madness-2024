@@ -1,0 +1,38 @@
+@use "variables" as *;
+
+#problems {
+  ul,
+  li {
+    list-style: none;
+    padding: 0;
+  }
+
+  li a {
+    width: 100%;
+    text-align: left;
+  }
+
+  .not-available {
+    a {
+      background-color: transparent;
+      outline: 2px solid var(--primary);
+      outline-offset: -2px;
+      opacity: 0.75;
+      cursor: not-allowed;
+    }
+
+    time {
+      font-family: $code-font-family;
+      font-weight: 700;
+      margin-left: calc(var(--spacing) / 4);
+
+      &:before {
+        content: "[";
+      }
+
+      &:after {
+        content: "]";
+      }
+    }
+  }
+}

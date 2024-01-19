@@ -1,0 +1,74 @@
+{{ template "head" . }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="problems">
+  <article>
+    <hgroup>
+      <h2>Week of Code</h2>
+      <p>A new coding problem every day</p>
+    </hgroup>
+
+    <p>
+      Completing at least one part each day will result in a
+      <mark>1337</mark> score bonus for your team!
+    </p>
+
+    <ul class="problems">
+      {{ $available := .Problems.AvailableProblems }}
+      {{ range $i := until .Problems.TotalProblems }}
+        {{ $problem := $.Problems.Problem $i }}
+        {{ if $problem }}
+          <li>
+            <a role="button" href="./problems/{{ add $i 1 }}">
+              Problem {{ add $i 1 }}:
+              {{ $problem.Title }}
+            </a>
+          </li>
+        {{ else }}
+          <li class="not-available">
+            <a role="button" data-problem="{{ add $i 1 }}">
+              Problem
+              {{ add $i 1 }}
+              {{- if eq $i $available -}}
+                {{ $nextRelease := $.Problems.NextReleaseTime }}
+                <time datetime="{{ $nextRelease | rfc3339 }}" class="countdown">
+                  {{- $nextRelease | date "01/02/2006" -}}
+                </time>
+              {{ end }}
+            </a>
+          </li>
+        {{ end }}
+      {{ end }}
+    </ul>
+  </article>
+</main>
+
+<script>
+  document.querySelectorAll(".not-available").forEach((li) => {
+    const time = li.querySelector("time");
+    const target = new Date(time.getAttribute("datetime")).getTime();
+    let id;
+    const update = () => {
+      const now = new Date().getTime();
+      const distance = target - now;
+      const h = Math.floor(distance / (1000 * 60 * 60));
+      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((distance % (1000 * 60)) / 1000);
+      const parts = [h, m, s].map((n) => n.toString().padStart(2, "0"));
+      time.textContent = parts.join(":");
+
+      if (distance <= 0) {
+        clearInterval(id);
+        li.classList.remove("not-available");
+        const a = li.querySelector("a");
+        a.href = "/problems/" + a.dataset.problem;
+      }
+    };
+    id = setInterval(update, 1000);
+    update();
+  });
+</script>
+
+{{ template "footer" . }}

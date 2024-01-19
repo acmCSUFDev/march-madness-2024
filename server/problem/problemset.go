@@ -41,25 +41,25 @@ func (p *ProblemSet) Problems() []Problem {
 }
 
 // Problem returns the problem at the given index. If the index is accessing a
-// problem that is not available yet, it returns false.
-func (p *ProblemSet) Problem(i int) (Problem, bool) {
+// problem that is not available yet, it returns nil.
+func (p *ProblemSet) Problem(i int) *Problem {
 	n := p.AvailableProblems()
 	if i >= n {
-		return Problem{}, false
+		return nil
 	}
-	return p.problems[i], true
+	return &p.problems[i]
 }
 
-// NumProblems returns the total number of problems in the set.
-func (p *ProblemSet) NumProblems() int {
-	return len(p.Problems())
+// TotalProblems returns the total number of problems in the set.
+func (p *ProblemSet) TotalProblems() int {
+	return len(p.problems)
 }
 
 // AvailableProblems returns the number of problems that are available to be
 // solved.
 func (p *ProblemSet) AvailableProblems() int {
 	if p.schedule == nil {
-		return p.NumProblems()
+		return p.TotalProblems()
 	}
 
 	now := p.now()
@@ -68,10 +68,10 @@ func (p *ProblemSet) AvailableProblems() int {
 		// The first problem is not released yet.
 		return 0
 	}
-	n := int(delta / p.schedule.ReleaseEvery)
+	n := int(delta/p.schedule.ReleaseEvery) + 1
 	if n >= len(p.problems) {
 		// All problems are released.
-		return p.NumProblems()
+		return p.TotalProblems()
 	}
 	return n
 }
@@ -84,11 +84,11 @@ func (p *ProblemSet) NextReleaseTime() time.Time {
 	}
 
 	n := p.AvailableProblems()
-	if n == p.NumProblems() {
+	if n == p.TotalProblems() {
 		return time.Time{}
 	}
 
-	return p.schedule.StartReleaseAt.Add(time.Duration(n+1) * p.schedule.ReleaseEvery)
+	return p.schedule.StartReleaseAt.Add(time.Duration(n) * p.schedule.ReleaseEvery)
 }
 
 // TimeUntilNextRelease returns the duration until the next problem is released.
