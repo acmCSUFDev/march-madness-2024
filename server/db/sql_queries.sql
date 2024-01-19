@@ -40,7 +40,7 @@ SELECT
 	FROM team_points
 	RIGHT JOIN teams ON teams.team_name = team_points.team_name
 	GROUP BY teams.team_name, team_points.reason
-	ORDER BY team_points.points DESC;
+	ORDER BY COALESCE(SUM(team_points.points), 0) DESC;
 
 -- name: TeamPointsHistory :many
 SELECT * FROM team_points ORDER BY added_at ASC;

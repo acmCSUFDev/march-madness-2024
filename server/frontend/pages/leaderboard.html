@@ -51,6 +51,7 @@
   import * as charts from "https://cdn.jsdelivr.net/npm/lightweight-charts@4.1/dist/lightweight-charts.standalone.production.mjs";
 
   const { teams, teamPointsEvents, startedAt } = window;
+  console.log(teams, teamPointsEvents, startedAt);
 
   const styles = window.getComputedStyle(document.body);
   const mutedColor = styles.getPropertyValue("--muted-color");
@@ -79,7 +80,7 @@
   const chart = charts.createChart(document.getElementById("points-chart"), {
     autoSize: true,
     handleScale: false,
-    handleScroll: true,
+    handleScroll: false,
     grid: {
       vertLines: { visible: false },
       horzLines: { visible: true, color: mutedColor },
@@ -101,38 +102,36 @@
     },
   });
 
-  teams
-    .slice()
-    .reverse()
-    .forEach((team) => {
-      const series = chart.addLineSeries({
-        title: team,
-        color: colors[teams.indexOf(team) % colors.length],
-        lineWidth: 2,
-        priceFormat: {
-          type: "price",
-          precision: 0,
-          minMove: 1,
-        },
-        pointMarkersVisible: true,
-      });
-      series.setData([
-        { time: startedAt / 1000, value: 0 },
-        ...teamPointsEvents
-          .filter((e) => e.team_name == team)
-          .map(
-            ((acc) => (e) => ({
-              time: Date.parse(e.added_at) / 1000,
-              value: (acc += e.points),
-            }))(0),
-          ),
-      ]);
+  teams.forEach((team) => {
+    const series = chart.addLineSeries({
+      title: team,
+      color: colors[teams.indexOf(team) % colors.length],
+      lineWidth: 2,
+      priceFormat: {
+        type: "price",
+        precision: 0,
+        minMove: 1,
+      },
+      pointMarkersVisible: true,
     });
+    series.setData([
+      { time: startedAt / 1000, value: 0 },
+      ...teamPointsEvents
+        .filter((e) => e.team_name == team)
+        .map(
+          ((acc) => (e) => ({
+            time: Date.parse(e.added_at) / 1000,
+            value: (acc += e.points),
+          }))(0),
+        ),
+    ]);
+    console.log(series.data());
+  });
 
-  const timeScale = chart.timeScale();
-  timeScale.fitContent();
+  chart.timeScale().fitContent();
 
-  // const range = chart.timeScale().getVisibleRange();
+  const range = chart.timeScale().getVisibleRange();
+  console.log(range);
   // if (range) {
   //   const day = 24 * 60 * 60;
   //   console.log(range);
