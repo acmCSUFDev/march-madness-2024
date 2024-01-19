@@ -22,22 +22,21 @@ Example:
 ```
 In this example, Diamond's favorite primes are 3 and 7
 
-Diamond ran 1 to 10
-Justin ran 2 to 5
-Pillow ran 4 to 9
+Diamond ran 4 to 10
+Justin ran 2 to 6
+Pillow ran 5 to 7
 
 |         | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 |
 |---------|---|---|---|---|---|---|---|---|---|---|----|
-| Diamond |   | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1 | 1  |
-| Justin  |   |   | 1 | 1 | 1 | 1 |   |   |   |   |    |
-| Pillow  |   |   |   |   | 1 | 1 | 1 | 1 | 1 | 1 |    |
+| Diamond | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 1 | 1  |
+| Justin  | 0 | 0 | 1 | 1 | 1 | 1 | 1 | 0 | 0 | 0 | 0  |
+| Pillow  | 0 | 0 | 0 | 0 | 0 | 1 | 1 | 1 | 0 | 0 | 0  |
 
 XOR 3 -> 7
 
-xor starting is [1]
-Diamond: [1] ^ 1 ^ 1 ^ 1 ^ 1 ^ 1 = 0
-Justin:  [1] ^ 1 ^ 1 ^ 1 ^ 0 ^ 0 = 0
-Pillow:  [1] ^ 0 ^ 1 ^ 1 ^ 1 ^ 1 = 1
+Diamond: 0 ^ 1 ^ 1 ^ 1 ^ 1 = 0
+Justin:  1 ^ 1 ^ 1 ^ 1 ^ 0 = 0
+Pillow:  0 ^ 0 ^ 1 ^ 1 ^ 1 = 1
 
 Here 1 is the answer!
 ```
