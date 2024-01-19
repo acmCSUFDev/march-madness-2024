@@ -18,19 +18,20 @@
     <ul class="problems">
       {{ $available := .Problems.AvailableProblems }}
       {{ range $i := until .Problems.TotalProblems }}
+        {{ $id := add $i 1 }}
         {{ $problem := $.Problems.Problem $i }}
         {{ if $problem }}
           <li>
-            <a role="button" href="./problems/{{ add $i 1 }}">
-              Problem {{ add $i 1 }}:
+            <a role="button" href="./problems/{{ $id }}">
+              Problem {{ $id }}:
               {{ $problem.Title }}
             </a>
           </li>
         {{ else }}
           <li class="not-available">
-            <a role="button" data-problem="{{ add $i 1 }}">
+            <a role="button" data-problem="{{ $id }}">
               Problem
-              {{ add $i 1 }}
+              {{ $id }}
               {{- if eq $i $available -}}
                 {{ $nextRelease := $.Problems.NextReleaseTime }}
                 <time datetime="{{ $nextRelease | rfc3339 }}" class="countdown">

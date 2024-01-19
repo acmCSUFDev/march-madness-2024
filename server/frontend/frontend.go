@@ -1,12 +1,15 @@
 package frontend
 
 import (
+	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/yuin/goldmark"
 	"libdb.so/tmplutil"
 )
 
@@ -22,6 +25,9 @@ type ComponentContext struct {
 	Username string
 }
 
+// Markdown is a goldmark instance.
+var Markdown = goldmark.New()
+
 // NewTemplater returns a new templater with the given filesystem.
 func NewTemplater(fs fs.FS) *tmplutil.Templater {
 	t := &tmplutil.Templater{
@@ -36,6 +42,31 @@ func NewTemplater(fs fs.FS) *tmplutil.Templater {
 			template.FuncMap{
 				"rfc3339": func(t time.Time) string {
 					return t.Format(time.RFC3339)
+				},
+				"md": func(md string) (template.HTML, error) {
+					var s strings.Builder
+					if err := Markdown.Convert([]byte(md), &s); err != nil {
+						return "", err
+					}
+					return template.HTML(s.String()), nil
+				},
+				"formatDuration": func(d time.Duration) string {
+					switch {
+					case d < time.Second:
+						return "0s"
+					case d < time.Minute:
+						return fmt.Sprintf("%ds",
+							int(d.Seconds()))
+					case d < time.Hour:
+						return fmt.Sprintf("%dm %02ds",
+							int(d.Minutes()),
+							int(d.Seconds())%60)
+					default:
+						return fmt.Sprintf("%dh %02dm %02ds",
+							int(d.Hours()),
+							int(d.Minutes())%60,
+							int(d.Seconds())%60)
+					}
 				},
 			},
 		),

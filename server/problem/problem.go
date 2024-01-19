@@ -7,7 +7,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
+
+// PointsPerPart is the number of points awarded for solving a part of a
+// problem.
+const PointsPerPart = 100
 
 // Problem is the description of a problem. It includes the title,
 // part 1 description and part 2 description, all of which are in CommonMark
@@ -101,7 +106,8 @@ func ParsePythonProblemDirectory(pwd, path string, logger *slog.Logger) (Problem
 		return Problem{}, fmt.Errorf("failed to stat problem.py: %w", err)
 	}
 
-	pythonInput, err := NewPythonInputGenerator(pwd, path, logger)
+	pythonModule := strings.ReplaceAll(filepath.Clean(path), "/", ".") + ".problem"
+	pythonInput, err := NewPythonInputGenerator(pwd, pythonModule, logger)
 	if err != nil {
 		return Problem{}, fmt.Errorf("failed to create Python input generator: %w", err)
 	}
@@ -117,4 +123,25 @@ func MustParsePythonProblemDirectory(pwd, path string, logger *slog.Logger) Prob
 		panic(err)
 	}
 	return desc
+}
+
+// CalculateCooldownEnd calculates the end of the cooldown period for a problem
+// given the total number of attempts, the time of the last submission and the
+// current time. If there is no cooldown, the returned timestamp is before the
+// current time, which may or may not be zero.
+func CalculateCooldownEnd(totalAttempts int, lastSubmitted, now time.Time) time.Time {
+	const cooldownThreshold = 2
+	const cooldownMultiplier = 2
+	const cooldownMax = 5 * time.Minute
+	const cooldown = 30 * time.Second
+
+	if totalAttempts < cooldownThreshold {
+		return time.Time{}
+	}
+
+	n := totalAttempts - cooldownThreshold + 1
+
+	return lastSubmitted.Add(min(
+		cooldown*time.Duration(cooldownMultiplier*n),
+		cooldownMax))
 }

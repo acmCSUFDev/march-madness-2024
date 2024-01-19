@@ -1,0 +1,70 @@
+{{ template "head" }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="problem_result">
+  <article>
+    <hgroup>
+      <h1>Day {{ .ID }}</h1>
+      <h2>Problem Submission</h2>
+    </hgroup>
+
+    {{ if gt .Cooldown 0 }}
+      <p>
+        Because you have submitted an incorrect answer too many times, you will
+        have to wait
+        <strong>
+          <time datetime="{{ .CooldownTime | rfc3339 }}" class="countdown">
+            {{ .Cooldown | formatDuration }}
+          </time>
+        </strong>
+        before you can submit another answer.
+        <a href="/problems/{{ .ID }}">Go back to the problem here</a>.
+      </p>
+    {{ else }}
+      {{ if .Correct }}
+        <p>
+          Congratulations! Your answer is <strong>correct</strong>!
+          <a href="/problems/{{ .ID }}">Go back to the problem here</a>, or
+          <a href="/leaderboard">check out the leaderboard</a>.
+        </p>
+      {{ else }}
+        <p>
+          Sorry, your answer is <strong>incorrect</strong>.
+          <a href="/problems/{{ .ID }}">Go back to the problem here</a>.
+        </p>
+      {{ end }}
+    {{ end }}
+  </article>
+</main>
+
+<script>
+  document.querySelectorAll(".countdown").forEach((time) => {
+    const target = new Date(time.getAttribute("datetime")).getTime();
+    let id;
+    const update = () => {
+      const now = new Date().getTime();
+      const distance = target - now;
+      const h = Math.floor(distance / (1000 * 60 * 60));
+      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((distance % (1000 * 60)) / 1000);
+
+      if (h > 0) {
+        time.textContent = `${h}h ${m}m ${s}s`;
+      } else if (m > 0) {
+        time.textContent = `${m}m ${s}s`;
+      } else {
+        time.textContent = `${s}s`;
+      }
+
+      if (distance <= 0) {
+        clearInterval(id);
+      }
+    };
+    id = setInterval(update, 1000);
+    update();
+  });
+</script>
+
+{{ template "footer" . }}

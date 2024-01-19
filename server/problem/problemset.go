@@ -44,7 +44,7 @@ func (p *ProblemSet) Problems() []Problem {
 // problem that is not available yet, it returns nil.
 func (p *ProblemSet) Problem(i int) *Problem {
 	n := p.AvailableProblems()
-	if i >= n {
+	if i < 0 || i >= n {
 		return nil
 	}
 	return &p.problems[i]

@@ -7,32 +7,50 @@ package db
 
 import (
 	"context"
+	"database/sql"
+	"time"
 )
 
 const addPoints = `-- name: AddPoints :one
-UPDATE teams SET points = points + ? WHERE team_name = ? RETURNING team_name, created_at, invite_code, accepting_members, points
+INSERT INTO team_points (team_name, points, reason) VALUES (?, ?, ?) RETURNING team_name, added_at, points, reason
 `
 
 type AddPointsParams struct {
-	Points   float64
 	TeamName string
+	Points   float64
+	Reason   string
 }
 
-func (q *Queries) AddPoints(ctx context.Context, arg AddPointsParams) (Team, error) {
-	row := q.db.QueryRowContext(ctx, addPoints, arg.Points, arg.TeamName)
-	var i Team
+func (q *Queries) AddPoints(ctx context.Context, arg AddPointsParams) (TeamPoint, error) {
+	row := q.db.QueryRowContext(ctx, addPoints, arg.TeamName, arg.Points, arg.Reason)
+	var i TeamPoint
 	err := row.Scan(
 		&i.TeamName,
-		&i.CreatedAt,
-		&i.InviteCode,
-		&i.AcceptingMembers,
+		&i.AddedAt,
 		&i.Points,
+		&i.Reason,
 	)
 	return i, err
 }
 
+const countIncorrectSubmissions = `-- name: CountIncorrectSubmissions :one
+SELECT COUNT(*) FROM team_submit_attempts WHERE team_name = ? AND problem_id = ? AND correct = FALSE
+`
+
+type CountIncorrectSubmissionsParams struct {
+	TeamName  string
+	ProblemID string
+}
+
+func (q *Queries) CountIncorrectSubmissions(ctx context.Context, arg CountIncorrectSubmissionsParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countIncorrectSubmissions, arg.TeamName, arg.ProblemID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createTeam = `-- name: CreateTeam :one
-INSERT INTO teams (team_name, invite_code) VALUES (?, ?) RETURNING team_name, created_at, invite_code, accepting_members, points
+INSERT INTO teams (team_name, invite_code) VALUES (?, ?) RETURNING team_name, created_at, invite_code, accepting_members
 `
 
 type CreateTeamParams struct {
@@ -48,13 +66,12 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 		&i.CreatedAt,
 		&i.InviteCode,
 		&i.AcceptingMembers,
-		&i.Points,
 	)
 	return i, err
 }
 
 const findTeam = `-- name: FindTeam :one
-SELECT team_name, created_at, invite_code, accepting_members, points FROM teams WHERE team_name = ?
+SELECT team_name, created_at, invite_code, accepting_members FROM teams WHERE team_name = ?
 `
 
 func (q *Queries) FindTeam(ctx context.Context, teamName string) (Team, error) {
@@ -65,13 +82,12 @@ func (q *Queries) FindTeam(ctx context.Context, teamName string) (Team, error) {
 		&i.CreatedAt,
 		&i.InviteCode,
 		&i.AcceptingMembers,
-		&i.Points,
 	)
 	return i, err
 }
 
 const findTeamWithInviteCode = `-- name: FindTeamWithInviteCode :one
-SELECT team_name, created_at, invite_code, accepting_members, points FROM teams WHERE invite_code = ? AND accepting_members = TRUE
+SELECT team_name, created_at, invite_code, accepting_members FROM teams WHERE invite_code = ? AND accepting_members = TRUE
 `
 
 func (q *Queries) FindTeamWithInviteCode(ctx context.Context, inviteCode string) (Team, error) {
@@ -82,9 +98,24 @@ func (q *Queries) FindTeamWithInviteCode(ctx context.Context, inviteCode string)
 		&i.CreatedAt,
 		&i.InviteCode,
 		&i.AcceptingMembers,
-		&i.Points,
 	)
 	return i, err
+}
+
+const hasSolved = `-- name: HasSolved :one
+SELECT COUNT(*) FROM team_submit_attempts WHERE team_name = ? AND problem_id = ? AND correct = TRUE
+`
+
+type HasSolvedParams struct {
+	TeamName  string
+	ProblemID string
+}
+
+func (q *Queries) HasSolved(ctx context.Context, arg HasSolvedParams) (int64, error) {
+	row := q.db.QueryRowContext(ctx, hasSolved, arg.TeamName, arg.ProblemID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
 }
 
 const isLeader = `-- name: IsLeader :one
@@ -125,6 +156,25 @@ func (q *Queries) JoinTeam(ctx context.Context, arg JoinTeamParams) (TeamMember,
 	return i, err
 }
 
+const lastSubmissionTime = `-- name: LastSubmissionTime :one
+SELECT submitted_at FROM team_submit_attempts
+	WHERE team_name = ? AND problem_id = ?
+	ORDER BY submitted_at DESC
+	LIMIT 1
+`
+
+type LastSubmissionTimeParams struct {
+	TeamName  string
+	ProblemID string
+}
+
+func (q *Queries) LastSubmissionTime(ctx context.Context, arg LastSubmissionTimeParams) (time.Time, error) {
+	row := q.db.QueryRowContext(ctx, lastSubmissionTime, arg.TeamName, arg.ProblemID)
+	var submitted_at time.Time
+	err := row.Scan(&submitted_at)
+	return submitted_at, err
+}
+
 const leaveTeam = `-- name: LeaveTeam :one
 DELETE FROM team_members WHERE team_name = ? AND user_name = ? RETURNING team_name, user_name, joined_at, is_leader
 `
@@ -146,8 +196,78 @@ func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) (TeamMembe
 	return i, err
 }
 
+const listSubmissions = `-- name: ListSubmissions :many
+SELECT team_name, problem_id, submitted_at, correct FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
+	ORDER BY submitted_at ASC
+`
+
+type ListSubmissionsParams struct {
+	TeamName  string
+	ProblemID string
+}
+
+func (q *Queries) ListSubmissions(ctx context.Context, arg ListSubmissionsParams) ([]TeamSubmitAttempt, error) {
+	rows, err := q.db.QueryContext(ctx, listSubmissions, arg.TeamName, arg.ProblemID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TeamSubmitAttempt
+	for rows.Next() {
+		var i TeamSubmitAttempt
+		if err := rows.Scan(
+			&i.TeamName,
+			&i.ProblemID,
+			&i.SubmittedAt,
+			&i.Correct,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTeamAndMembers = `-- name: ListTeamAndMembers :many
+SELECT team_name, user_name, joined_at, is_leader FROM team_members
+`
+
+func (q *Queries) ListTeamAndMembers(ctx context.Context) ([]TeamMember, error) {
+	rows, err := q.db.QueryContext(ctx, listTeamAndMembers)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TeamMember
+	for rows.Next() {
+		var i TeamMember
+		if err := rows.Scan(
+			&i.TeamName,
+			&i.UserName,
+			&i.JoinedAt,
+			&i.IsLeader,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listTeams = `-- name: ListTeams :many
-SELECT team_name, created_at, invite_code, accepting_members, points FROM teams
+SELECT team_name, created_at, invite_code, accepting_members FROM teams
 `
 
 func (q *Queries) ListTeams(ctx context.Context) ([]Team, error) {
@@ -164,7 +284,6 @@ func (q *Queries) ListTeams(ctx context.Context) ([]Team, error) {
 			&i.CreatedAt,
 			&i.InviteCode,
 			&i.AcceptingMembers,
-			&i.Points,
 		); err != nil {
 			return nil, err
 		}
@@ -199,4 +318,38 @@ func (q *Queries) RecordSubmission(ctx context.Context, arg RecordSubmissionPara
 		&i.Correct,
 	)
 	return i, err
+}
+
+const teamPoints = `-- name: TeamPoints :many
+SELECT team_name, SUM(points) AS points FROM team_points
+	GROUP BY team_name
+	ORDER BY points DESC
+`
+
+type TeamPointsRow struct {
+	TeamName string
+	Points   sql.NullFloat64
+}
+
+func (q *Queries) TeamPoints(ctx context.Context) ([]TeamPointsRow, error) {
+	rows, err := q.db.QueryContext(ctx, teamPoints)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TeamPointsRow
+	for rows.Next() {
+		var i TeamPointsRow
+		if err := rows.Scan(&i.TeamName, &i.Points); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }

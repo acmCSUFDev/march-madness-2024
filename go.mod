@@ -14,6 +14,7 @@ require (
 	github.com/lmittmann/tint v1.0.3
 	github.com/neilotoole/slogt v1.1.0
 	github.com/spf13/pflag v1.0.3
+	github.com/yuin/goldmark v1.4.13
 	libdb.so/ctxt v0.0.0-20240118132135-5a5840831d74
 	libdb.so/etagcache v0.0.0-20240119053604-b0ff0cad1e13
 	libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5

@@ -22,6 +22,7 @@ type Config struct {
 			Start time.Time      `json:"start"`
 			Every configDuration `json:"every"`
 		} `json:"schedule"`
+		Cooldown configDuration `json:"cooldown"`
 	} `json:"problems"`
 }
 

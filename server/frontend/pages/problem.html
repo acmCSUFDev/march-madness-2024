@@ -1,0 +1,106 @@
+{{ template "head" . }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="problem">
+  <article>
+    <hgroup>
+      <h1>Day {{ .ID }}</h1>
+      <h2>{{ .Problem.Title }}</h2>
+    </hgroup>
+    <section class="part part1">
+      {{ md .Problem.Part1 }}
+
+
+      <h3>Input</h3>
+      {{ template "download-input" . }}
+
+
+      <h3>Output</h3>
+      {{ if .SolvedPart1 }}
+        <p>
+          <strong>You've already solved Part 1!</strong>
+          This nets you a total of
+          <strong class="primary">{{ .PointsPerPart }}</strong>
+          points.
+        </p>
+      {{ else }}
+        {{ template "answer-form" (dict "id" .ID "part" 1) }}
+      {{ end }}
+    </section>
+
+    {{ if .SolvedPart1 }}
+      <hr />
+
+      <section class="part part2">
+        <h2>Part 2</h2>
+        {{ md .Problem.Part2 }}
+
+
+        <h3>Input</h3>
+        <p>
+          Your input to Part 2 is the same as your input to Part 1. You may
+          still choose to download it again.
+        </p>
+        {{ template "download-input" . }}
+
+
+        <h3>Output</h3>
+        {{ if .SolvedPart2 }}
+          <strong>You've already solved Part 2!</strong>
+        {{ else }}
+          {{ template "answer-form" (dict "id" .ID "part" 2) }}
+        {{ end }}
+      </section>
+    {{ end }}
+  </article>
+</main>
+
+{{ define "download-input" }}
+  <div class="grid">
+    <a role="button" href="/problems/{{ .ID }}/input" target="_blank">
+      See Input
+    </a>
+    <button class="secondary copy-input">Copy Input</button>
+  </div>
+{{ end }}
+
+{{ define "answer-form" }}
+  <form class="answer-form" action="/problems/{{ .id }}/submit" method="POST">
+    <input type="hidden" name="part" value="{{ .part }}" />
+    <input
+      type="text"
+      class="answer"
+      name="answer"
+      placeholder="Answer"
+      pattern="[0-9]*"
+      required
+    />
+    <button type="submit">Submit</button>
+  </form>
+{{ end }}
+
+
+<script>
+  document.querySelectorAll(".copy-input").forEach((button) => {
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      const label = button.textContent;
+      button.textContent = "Downloading...";
+
+      const inputResponse = await fetch(button.previousElementSibling.href);
+      const input = await inputResponse.text();
+
+      navigator.clipboard.writeText(input);
+
+      button.textContent = "Copied!";
+      setTimeout(() => {
+        button.textContent = label;
+        button.disabled = false;
+      }, 2000);
+    });
+  });
+</script>
+
+{{ template "footer" . }}

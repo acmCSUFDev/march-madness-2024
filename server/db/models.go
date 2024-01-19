@@ -13,7 +13,6 @@ type Team struct {
 	CreatedAt        time.Time
 	InviteCode       string
 	AcceptingMembers bool
-	Points           float64
 }
 
 type TeamMember struct {
@@ -21,6 +20,13 @@ type TeamMember struct {
 	UserName string
 	JoinedAt time.Time
 	IsLeader bool
+}
+
+type TeamPoint struct {
+	TeamName string
+	AddedAt  time.Time
+	Points   float64
+	Reason   string
 }
 
 type TeamSubmitAttempt struct {

@@ -10,7 +10,12 @@
     "pwd": ".",
     "paths": [
       "./problems/01",
-      "./problems/diamond-02"
+      "./problems/diamond-02",
+      "./problems/01",
+      "./problems/01",
+      "./problems/01",
+      "./problems/01",
+      "./problems/01"
     ],
     "schedule": {
       "start": "2024-01-18T22:52:18-08:00",

@@ -81,7 +81,7 @@ func run(ctx context.Context) error {
 
 	if config.Paths.ProblemsCache != "" {
 		db, err := problem.WrapAllProblemsWithInputCache(
-			config.Paths.ProblemsCache, problems,
+			config.Paths.ProblemsCache, problems, config.Problems.Paths,
 			logger.With("component", "problem_cache"))
 		if err != nil {
 			return fmt.Errorf("failed to wrap problems with input cache: %w", err)
@@ -97,7 +97,10 @@ func run(ctx context.Context) error {
 	server := server.New(
 		frontendDir,
 		secretKey,
-		problemset,
+		server.ProblemSet{
+			ProblemSet: problemset,
+			ProblemIDs: config.Problems.Paths,
+		},
 		database,
 		logger.With("component", "http"),
 	)

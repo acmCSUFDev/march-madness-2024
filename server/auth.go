@@ -98,6 +98,7 @@ func (s *Server) requireAuth(next http.Handler) http.Handler {
 			http.Error(w, "unauthorized", http.StatusUnauthorized)
 			return
 		}
+		next.ServeHTTP(w, r)
 	})
 }
 

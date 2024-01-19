@@ -2,7 +2,10 @@ package problem
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"hash/crc32"
 	"io"
@@ -22,9 +25,9 @@ type ProblemInput struct {
 	// Input is the input data for the problem.
 	Input string
 	// Part1 is the expected output for part 1.
-	Part1 int
+	Part1 int64
 	// Part2 is the expected output for part 2.
-	Part2 int
+	Part2 int64
 }
 
 // InputGenerator is the interface for a problem input generator.
@@ -61,13 +64,25 @@ func (p *PythonInputGenerator) GenerateInput(ctx context.Context, seed int) (Pro
 	cmd.Dir = p.pwd
 
 	start := time.Now()
-
 	output, err := cmd.CombinedOutput()
+	taken := time.Since(start)
+
 	if err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			p.logger.DebugContext(ctx,
+				"failed to generate input using Python input generator",
+				"seed", seed,
+				"module", p.module,
+				"pwd", p.pwd,
+				"duration", taken,
+				"exit_code", exitErr.ExitCode(),
+				"stdout", string(output),
+				"stderr", string(exitErr.Stderr))
+		}
 		return ProblemInput{}, fmt.Errorf("failed to generate input: %w", err)
 	}
 
-	taken := time.Since(start)
 	p.logger.DebugContext(ctx,
 		"generated input using Python input generator",
 		"seed", seed,
@@ -89,17 +104,20 @@ type CachedInputGenerator struct {
 	cache     *badger.DB
 	logger    *slog.Logger
 	generator InputGenerator
+	id        string
 }
 
 // NewCachedInputGenerator creates a new cached input generator from an existing
 // database.
-func NewCachedInputGenerator(db *badger.DB, generator InputGenerator) *CachedInputGenerator {
-	return &CachedInputGenerator{cache: db, generator: generator}
+func NewCachedInputGenerator(db *badger.DB, id string, generator InputGenerator, logger *slog.Logger) *CachedInputGenerator {
+	return &CachedInputGenerator{cache: db, generator: generator, id: id, logger: logger}
 }
 
 // GenerateInput implements InputGenerator.
 func (c *CachedInputGenerator) GenerateInput(ctx context.Context, seed int) (ProblemInput, error) {
-	k := []byte("v1-seed-" + strconv.Itoa(seed))
+	idHash := sha256.Sum256([]byte(c.id))
+	idHashStr := base64.StdEncoding.EncodeToString(idHash[:])
+	k := []byte("v1-" + idHashStr + "|" + strconv.Itoa(seed))
 
 	var input ProblemInput
 	err := c.cache.View(func(tx *badger.Txn) error {
@@ -112,6 +130,10 @@ func (c *CachedInputGenerator) GenerateInput(ctx context.Context, seed int) (Pro
 		})
 	})
 	if err == nil {
+		c.logger.DebugContext(ctx,
+			"badger cache hit",
+			"seed", seed,
+			"key", string(k))
 		return input, nil
 	}
 
@@ -143,7 +165,11 @@ func (c *CachedInputGenerator) GenerateInput(ctx context.Context, seed int) (Pro
 
 // WrapAllProblemsWithInputCache wraps the given problem descriptions with an
 // input cache using [CachedInputGenerator].
-func WrapAllProblemsWithInputCache(cacheDBPath string, problems []Problem, logger *slog.Logger) (io.Closer, error) {
+func WrapAllProblemsWithInputCache(cacheDBPath string, problems []Problem, ids []string, logger *slog.Logger) (io.Closer, error) {
+	if len(problems) != len(ids) {
+		return nil, fmt.Errorf("length of problems and ids must be equal")
+	}
+
 	opts := badger.DefaultOptions(cacheDBPath)
 	opts.Compression = badgeropts.ZSTD
 	opts.ZSTDCompressionLevel = 1
@@ -155,7 +181,9 @@ func WrapAllProblemsWithInputCache(cacheDBPath string, problems []Problem, logge
 	}
 
 	for i := range problems {
-		input := NewCachedInputGenerator(db, problems[i].Input)
+		input := NewCachedInputGenerator(
+			db, ids[i], problems[i].Input,
+			logger.With("problem_id", ids[i]))
 		problems[i].Input = input
 	}
 

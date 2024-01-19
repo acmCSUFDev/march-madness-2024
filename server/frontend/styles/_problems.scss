@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "pico" as *;
 
 #problems {
   ul,
@@ -19,6 +20,7 @@
       outline-offset: -2px;
       opacity: 0.75;
       cursor: not-allowed;
+      transition: all 0.5s ease-in-out;
     }
 
     time {
@@ -33,6 +35,40 @@
       &:after {
         content: "]";
       }
+    }
+  }
+}
+
+#problem {
+  strong {
+    text-shadow: 0 0 0.2em #{$grey-300};
+    font-weight: 400;
+    color: #{$grey-100};
+
+    &.primary {
+      text-shadow: 0 0 0.2em #{$primary-500};
+      color: #{$primary-300};
+    }
+  }
+
+  a[href*="/input"] {
+    width: 100%;
+  }
+
+  .copy-input {
+    transition: all 0.25s ease-in-out;
+  }
+
+  .grid > * {
+    margin-bottom: 0;
+  }
+
+  .answer-form {
+    display: flex;
+    gap: var(--spacing);
+
+    button {
+      flex: 0;
     }
   }
 }

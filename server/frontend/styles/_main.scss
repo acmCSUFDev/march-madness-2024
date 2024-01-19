@@ -1,13 +1,19 @@
 @use "variables" as *;
 @use "pico" as *;
 
-:root {
+@mixin root {
   --font-family: #{$font-family};
   --font-size: #{$font-size};
   --border-radius: #{$border-radius};
   --line-height: #{$line-height};
+  --code-color: var(--color);
   --grid-spacing-vertical: var(--spacing);
   --grid-spacing-horizontal: var(--spacing);
+}
+
+:root,
+:root:not([data-theme]) {
+  @include root;
 }
 
 body {
@@ -15,8 +21,15 @@ body {
 }
 
 pre,
+kbd,
 code {
   font-family: $code-font-family;
+  font-weight: $code-font-weight;
+  font-size: 0.95em;
+}
+
+pre > code {
+  font-size: inherit;
 }
 
 h1,
@@ -45,4 +58,13 @@ p.error {
   &:empty {
     display: none;
   }
+}
+
+time.countdown {
+  font-family: $code-font-family;
+  font-size: 1em;
+}
+
+hr {
+  margin: var(--block-spacing-vertical) 0;
 }
