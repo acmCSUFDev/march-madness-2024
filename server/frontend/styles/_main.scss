@@ -1,0 +1,48 @@
+@use "variables" as *;
+@use "pico" as *;
+
+:root {
+  --font-family: #{$font-family};
+  --font-size: #{$font-size};
+  --border-radius: #{$border-radius};
+  --line-height: #{$line-height};
+  --grid-spacing-vertical: var(--spacing);
+  --grid-spacing-horizontal: var(--spacing);
+}
+
+body {
+  line-height: var(--line-height);
+}
+
+pre,
+code {
+  font-family: $code-font-family;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: $headings-font-family;
+  font-weight: 700;
+}
+
+p.error {
+  border: 1px solid $red-500;
+  border-radius: var(--border-radius);
+  padding: var(--spacing);
+  background-color: rgba($red-500, 0.075);
+
+  &:before {
+    content: "⚠ Error!";
+    color: $red-400;
+    font-weight: bold;
+    display: block;
+  }
+
+  &:empty {
+    display: none;
+  }
+}

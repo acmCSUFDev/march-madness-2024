@@ -14,7 +14,7 @@ UPDATE teams SET points = points + ? WHERE team_name = ? RETURNING team_name, cr
 `
 
 type AddPointsParams struct {
-	Points   int64
+	Points   float64
 	TeamName string
 }
 
@@ -53,8 +53,58 @@ func (q *Queries) CreateTeam(ctx context.Context, arg CreateTeamParams) (Team, e
 	return i, err
 }
 
+const findTeam = `-- name: FindTeam :one
+SELECT team_name, created_at, invite_code, accepting_members, points FROM teams WHERE team_name = ?
+`
+
+func (q *Queries) FindTeam(ctx context.Context, teamName string) (Team, error) {
+	row := q.db.QueryRowContext(ctx, findTeam, teamName)
+	var i Team
+	err := row.Scan(
+		&i.TeamName,
+		&i.CreatedAt,
+		&i.InviteCode,
+		&i.AcceptingMembers,
+		&i.Points,
+	)
+	return i, err
+}
+
+const findTeamWithInviteCode = `-- name: FindTeamWithInviteCode :one
+SELECT team_name, created_at, invite_code, accepting_members, points FROM teams WHERE invite_code = ? AND accepting_members = TRUE
+`
+
+func (q *Queries) FindTeamWithInviteCode(ctx context.Context, inviteCode string) (Team, error) {
+	row := q.db.QueryRowContext(ctx, findTeamWithInviteCode, inviteCode)
+	var i Team
+	err := row.Scan(
+		&i.TeamName,
+		&i.CreatedAt,
+		&i.InviteCode,
+		&i.AcceptingMembers,
+		&i.Points,
+	)
+	return i, err
+}
+
+const isLeader = `-- name: IsLeader :one
+SELECT is_leader FROM team_members WHERE team_name = ? AND user_name = ?
+`
+
+type IsLeaderParams struct {
+	TeamName string
+	UserName string
+}
+
+func (q *Queries) IsLeader(ctx context.Context, arg IsLeaderParams) (bool, error) {
+	row := q.db.QueryRowContext(ctx, isLeader, arg.TeamName, arg.UserName)
+	var is_leader bool
+	err := row.Scan(&is_leader)
+	return is_leader, err
+}
+
 const joinTeam = `-- name: JoinTeam :one
-INSERT INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING team_name, user_name, joined_at, is_leader
+REPLACE INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING team_name, user_name, joined_at, is_leader
 `
 
 type JoinTeamParams struct {
@@ -65,6 +115,27 @@ type JoinTeamParams struct {
 
 func (q *Queries) JoinTeam(ctx context.Context, arg JoinTeamParams) (TeamMember, error) {
 	row := q.db.QueryRowContext(ctx, joinTeam, arg.TeamName, arg.UserName, arg.IsLeader)
+	var i TeamMember
+	err := row.Scan(
+		&i.TeamName,
+		&i.UserName,
+		&i.JoinedAt,
+		&i.IsLeader,
+	)
+	return i, err
+}
+
+const leaveTeam = `-- name: LeaveTeam :one
+DELETE FROM team_members WHERE team_name = ? AND user_name = ? RETURNING team_name, user_name, joined_at, is_leader
+`
+
+type LeaveTeamParams struct {
+	TeamName string
+	UserName string
+}
+
+func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) (TeamMember, error) {
+	row := q.db.QueryRowContext(ctx, leaveTeam, arg.TeamName, arg.UserName)
 	var i TeamMember
 	err := row.Scan(
 		&i.TeamName,

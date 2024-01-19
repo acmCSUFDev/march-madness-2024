@@ -1,0 +1,92 @@
+{{ template "head" }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="join">
+  <article>
+    <hgroup>
+      <h2>Team Creation</h2>
+      <p>Create or join a team!</p>
+    </hgroup>
+
+    {{ if .TeamName }}
+      <p>
+        <strong>You are already on a team.</strong> You can change teams by
+        entering a new team code or creating a new team. You may also change
+        your display name.
+      </p>
+    {{ else }}
+      <p>
+        If you are creating a team, you will be the team leader. You will be
+        able to invite others to your team using the team code.
+      </p>
+    {{ end }}
+    <p>
+      To create a team, put in your wanted team name.
+      <br />
+      To join a team, put in the team code.
+    </p>
+
+    {{ if .Error }}
+      <p class="error">{{ .Error }}</p>
+    {{ end }}
+
+
+    <form id="team-creation-form" action="/join" method="POST">
+      <input
+        maxlength="32"
+        minlength="2"
+        type="text"
+        name="username"
+        placeholder="Display Name"
+        pattern="[a-zA-Z-_ ]{2,32}"
+        title="Your name should be of length [2, 32] consisting of letters and spaces only!"
+        value="{{ .FillingUsername }}"
+        autocomplete="off"
+        required
+      />
+
+      <input
+        maxlength="32"
+        minlength="2"
+        type="text"
+        name="team_name"
+        placeholder="Team Name or Team Code"
+        pattern="[a-zA-Z-_ ]{2,32}"
+        title="Team name must be of length [2, 32] consisting of letters and spaces only!"
+        value="{{ .FillingTeamName }}"
+        autocomplete="off"
+        required
+      />
+
+      {{ if .TeamName }}
+        <button type="submit" class="secondary" id="submit-team">Change</button>
+      {{ else }}
+        <button type="submit" id="submit-team">Join</button>
+      {{ end }}
+    </form>
+
+    <footer>
+      <div>
+        <h2>FAQ</h2>
+        <ul>
+          <li>
+            <strong>Can you be on a team alone?</strong><br />
+            Yes.
+          </li>
+          <li>
+            <strong>Can I change teams?</strong><br />
+            Yes.
+          </li>
+          <li>
+            <strong>How large can a team be?</strong><br />
+            We recommend four, but you can do any size you like.
+          </li>
+        </ul>
+      </div>
+    </footer>
+  </article>
+</main>
+
+{{ template "footer" . }}

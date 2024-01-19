@@ -19,3 +19,14 @@ CREATE TABLE team_submit_attempts (
 	submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
 	correct BOOLEAN NOT NULL,
 	FOREIGN KEY (team_name) REFERENCES teams (team_name));
+
+--------------------------------- NEW VERSION ---------------------------------
+
+-- Add UNIQUE into teams.invite_code
+CREATE UNIQUE INDEX teams_invite_code_idx ON teams (invite_code);
+
+
+--------------------------------- NEW VERSION ---------------------------------
+
+-- Add UNIQUE into team_members.user_name so that we can't have duplicate users
+CREATE UNIQUE INDEX team_members_user_name_idx ON team_members (user_name);

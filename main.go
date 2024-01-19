@@ -98,6 +98,7 @@ func run(ctx context.Context) error {
 		frontendDir,
 		secretKey,
 		problemset,
+		database,
 		logger.With("component", "http"),
 	)
 

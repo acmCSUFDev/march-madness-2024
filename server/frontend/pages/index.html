@@ -1,1 +1,83 @@
 {{ template "head" }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="index">
+  <article>
+    <hgroup>
+      <h1>Welcome to the Frenzy!</h1>
+      <p>
+        Five days of events brought to you by
+        <span
+          data-tooltip="The largest Computer Science club at CSUF!"
+          data-placement="bottom"
+        >
+          acmCSUF
+        </span>
+      </p>
+    </hgroup>
+
+    <footer>
+      {{ if .TeamName }}
+        <section>
+          <hgroup>
+            <h3>Compete</h3>
+            <p>Choose an event to compete in!</p>
+          </hgroup>
+          <div class="grid">
+            <a role="button" href="/problems">Week of Code</a>
+            <a role="button" href="/hackathon">Mini Hackathon</a>
+          </div>
+        </section>
+
+        <hr style="margin: var(--block-spacing-vertical) 0" />
+
+        <section>
+          <hgroup>
+            <h3>Team</h3>
+            <p>You are on team <mark>{{ .TeamName }}</mark>.</p>
+          </hgroup>
+          <p>
+            Hover over
+            <span id="invite-code" data-tooltip="{{ .InviteCode }}">me</span> to
+            display your invite code! Click it to copy the code!
+          </p>
+          <p>
+            Others can join your team by entering your invite code in the "team
+            code" field on the Join page!
+          </p>
+          <script>
+            document
+              .getElementById("invite-code")
+              .addEventListener("click", function () {
+                navigator.clipboard.writeText(this.dataset.tooltip);
+                const s = this.dataset.tooltip;
+                this.dataset.tooltip = "Copied!";
+                setTimeout(() => (this.dataset.tooltip = s), 2000);
+              });
+          </script>
+          <p>
+            Want to join a different team or create a new one?
+            <a href="/join">Re-visit the Join page.</a>
+          </p>
+        </section>
+      {{ else }}
+        <section>
+          <hgroup>
+            <h3>Getting Started</h3>
+            <p>Join or create a team!</p>
+          </hgroup>
+          <div class="grid">
+            <a role="button" href="/join">Join or Create a Team</a>
+            <a role="button" href="/leaderboard" class="secondary">
+              View Leaderboard
+            </a>
+          </div>
+        </section>
+      {{ end }}
+    </footer>
+  </article>
+</main>
+
+{{ template "footer" . }}

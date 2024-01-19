@@ -1,0 +1,33 @@
+<nav id="header" class="container-fluid">
+  <ul>
+    <li class="brand">
+      <a href="/" class="contrast">
+        <strong>ACM February Frenzy</strong>
+      </a>
+    </li>
+  </ul>
+
+  <ul>
+    <li>
+      <a href="/leaderboard">Leaderboard</a>
+    </li>
+    <li>
+      <details role="list">
+        <summary aria-haspopup="listbox" role="link">Compete</summary>
+        <ul role="listbox" style="z-index: 2048">
+          <li><a href="/problems">Week of Code</a></li>
+          <li><a href="/hackathon">Mini Hackathon</a></li>
+        </ul>
+      </details>
+    </li>
+    {{ if .TeamName }}
+      <li>
+        <span class="contrast">[{{ .Username }} / {{ .TeamName }}]</span>
+      </li>
+    {{ else }}
+      <li>
+        <a id="nav-team" href="/join" role="button">Join</a>
+      </li>
+    {{ end }}
+  </ul>
+</nav>

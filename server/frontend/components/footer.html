@@ -1,0 +1,65 @@
+{{ define "footer-person" }}
+  <a
+    class="secondary"
+    data-tooltip="{{ .secret }}"
+    href="https://github.com/{{ .github }}"
+    >{{ .name }}</a
+  >
+{{- end }}
+
+
+<footer class="container">
+  <small>
+    Made by
+    {{ template "footer-person" (dict
+      "name" "Diamond"
+      "secret" "<3 NixOS"
+      "github" "diamondburned")
+    }},
+    {{ template "footer-person" (dict
+      "name" "Pillow"
+      "secret" ""
+      "github" "PillowGit")
+    }},
+    and
+    {{ template "footer-person" (dict
+      "name" "Sam Le"
+      "secret" ""
+      "github" "pas-trop-de-zele")
+    }},
+    with borrowed code from
+    {{ template "footer-person" (dict
+      "name" "Aaron"
+      "secret" "Favorite vim keybind: !!"
+      "github" "AaronLieb")
+    }}
+    and
+    {{ template "footer-person" (dict
+      "name" "Justin"
+      "secret" "Favorite vim keybind: z="
+      "github" "JustinStitt")
+    }}
+    for
+    <a
+      class="secondary"
+      data-tooltip="Largest CS community at CSUF!"
+      href="https://acmcsuf.com"
+      >acmCSUF</a
+    >
+    <br />
+    Built using
+    <a
+      class="secondary"
+      data-tooltip="Pretty goated ngl"
+      href="https://picocss.com/"
+      >Pico.css</a
+    >
+    •
+    <a
+      class="secondary"
+      data-tooltip="Available after the events conclude!"
+      href="https://github.com/diamondburned/february-frenzy"
+      >Source Code</a
+    >
+  </small>
+</footer>

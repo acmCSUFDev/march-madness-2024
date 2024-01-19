@@ -13,7 +13,7 @@ type Team struct {
 	CreatedAt        time.Time
 	InviteCode       string
 	AcceptingMembers bool
-	Points           int64
+	Points           float64
 }
 
 type TeamMember struct {

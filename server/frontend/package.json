@@ -1,0 +1,10 @@
+{
+  "name": "february-frenzy-frontend",
+  "dependencies": {
+    "@picocss/pico": "^1.5.11"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.4",
+    "prettier-plugin-go-template": "^0.0.15"
+  }
+}

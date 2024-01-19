@@ -17,6 +17,13 @@
 
 					sqlc
 
+					nodejs
+					dart-sass
+					(writeShellScriptBin "prettier" ''
+						cd $(git rev-parse --show-toplevel)/server/frontend
+						exec node_modules/.bin/prettier "$@"
+					'')
+
 					python3
 					python3Packages.black
 					pyright

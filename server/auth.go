@@ -2,7 +2,9 @@ package server
 
 import (
 	"encoding/json"
+	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"aidanwoods.dev/go-paseto"
@@ -40,7 +42,7 @@ func (s *Server) setTokenCookie(w http.ResponseWriter, u authenticatedUser) {
 	token.SetIssuedAt(now)
 	token.SetNotBefore(now)
 	token.SetExpiration(expires)
-	token.SetString("u", u.TeamName)
+	token.SetString("u", u.Username)
 	token.SetString("t", u.TeamName)
 
 	signed := token.V4Sign(s.secretKey, nil)
@@ -67,7 +69,7 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 
 		token, err := parser.ParseV4Public(public, cookie.Value, nil)
 		if err != nil {
-			s.logger.Debug(
+			s.logger.Warn(
 				"failed to parse token",
 				"token", cookie.Value,
 				"err", err)
@@ -77,11 +79,15 @@ func (s *Server) authMiddleware(next http.Handler) http.Handler {
 
 		var u authenticatedUser
 		if err := json.Unmarshal(token.ClaimsJSON(), &u); err != nil {
+			s.logger.Warn(
+				"failed to parse token",
+				"token", cookie.Value,
+				"err", err)
 			next.ServeHTTP(w, r)
 			return
 		}
 
-		ctx := ctxt.With(r.Context(), &u)
+		ctx := ctxt.With(r.Context(), u)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -103,4 +109,25 @@ func isAuthenticated(r *http.Request) bool {
 func getAuthentication(r *http.Request) authenticatedUser {
 	v, _ := ctxt.From[authenticatedUser](r.Context())
 	return v
+}
+
+func generateInviteCode() string {
+	const letters = "abcdefghijklmnopqrstuvwxyz0123456789"
+	const word = 4
+	const count = 4
+
+	r := rand.New(rand.NewSource(time.Now().UnixNano()))
+	var b strings.Builder
+	b.Grow(word*count + count - 1)
+
+	for i := 0; i < count; i++ {
+		if i != 0 {
+			b.WriteByte('-')
+		}
+		for j := 0; j < word; j++ {
+			b.WriteByte(letters[r.Intn(len(letters))])
+		}
+	}
+
+	return b.String()
 }

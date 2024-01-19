@@ -65,3 +65,18 @@ func newDatabase(db *sql.DB) (*Database, error) {
 func (db *Database) Close() error {
 	return db.db.Close()
 }
+
+// Tx scopes f to a transaction.
+func (db *Database) Tx(f func(*Queries) error) error {
+	tx, err := db.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	if err := f(New(tx)); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}

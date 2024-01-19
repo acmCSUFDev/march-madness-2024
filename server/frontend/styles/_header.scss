@@ -1,0 +1,23 @@
+@use "variables" as *;
+
+nav#header {
+  .team-name {
+    visibility: hidden;
+  }
+
+  .team {
+    color: var(--secondary);
+    visibility: hidden;
+  }
+
+  .brand {
+    font-family: $headings-font-family;
+    font-weight: $headings-font-weight;
+  }
+
+  @media (max-width: 400px) {
+    .brand {
+      display: none;
+    }
+  }
+}
