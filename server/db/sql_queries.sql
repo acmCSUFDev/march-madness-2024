@@ -33,9 +33,17 @@ SELECT submitted_at FROM team_submit_attempts
 INSERT INTO team_points (team_name, points, reason) VALUES (?, ?, ?) RETURNING *;
 
 -- name: TeamPoints :many
-SELECT team_name, SUM(points) AS points FROM team_points
-	GROUP BY team_name
-	ORDER BY points DESC;
+SELECT
+		teams.team_name,
+		team_points.reason,
+		SUM(team_points.points) AS points
+	FROM team_points
+	RIGHT JOIN teams ON teams.team_name = team_points.team_name
+	GROUP BY teams.team_name, team_points.reason
+	ORDER BY team_points.points DESC;
+
+-- name: TeamPointsHistory :many
+SELECT * FROM team_points ORDER BY added_at ASC;
 
 -- name: ListTeams :many
 SELECT * FROM teams;

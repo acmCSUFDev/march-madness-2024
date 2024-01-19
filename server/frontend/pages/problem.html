@@ -9,66 +9,68 @@
       <h1>Day {{ .ID }}</h1>
       <h2>{{ .Problem.Title }}</h2>
     </hgroup>
+
     <section class="part part1">
       {{ md .Problem.Part1 }}
-
-
-      <h3>Input</h3>
-      {{ template "download-input" . }}
-
-
-      <h3>Output</h3>
-      {{ if .SolvedPart1 }}
-        <p>
-          <strong>You've already solved Part 1!</strong>
-          This nets you a total of
-          <strong class="primary">{{ .PointsPerPart }}</strong>
-          points.
-        </p>
-      {{ else }}
-        {{ template "answer-form" (dict "id" .ID "part" 1) }}
-      {{ end }}
     </section>
 
     {{ if .SolvedPart1 }}
-      <hr />
-
       <section class="part part2">
         <h2>Part 2</h2>
         {{ md .Problem.Part2 }}
-
-
-        <h3>Input</h3>
-        <p>
-          Your input to Part 2 is the same as your input to Part 1. You may
-          still choose to download it again.
-        </p>
-        {{ template "download-input" . }}
-
-
-        <h3>Output</h3>
-        {{ if .SolvedPart2 }}
-          <strong>You've already solved Part 2!</strong>
-        {{ else }}
-          {{ template "answer-form" (dict "id" .ID "part" 2) }}
-        {{ end }}
       </section>
     {{ end }}
+
+
+    <footer>
+      <section>
+        <h2>Input</h2>
+        {{ template "download-input" . }}
+      </section>
+
+      <section>
+        <h2>Output</h2>
+        {{ if or .SolvedPart1 .SolvedPart2 }}
+          <p>
+            {{ if and .SolvedPart1 (not .SolvedPart2) }}
+              <strong class="primary">You've solved part 1!</strong>
+            {{ else }}
+              <strong class="primary">You've solved both parts!</strong>
+            {{ end }}
+            This nets you a total of
+            <strong class="primary">
+              {{ if and .SolvedPart1 (not .SolvedPart2) }}
+                {{ .PointsPerPart }}
+              {{ else }}
+                {{ mul .PointsPerPart 2 }}
+              {{ end }}
+            </strong>
+            points.
+          </p>
+        {{ end }}
+
+        {{ if not (and .SolvedPart1 .SolvedPart2) }}
+          {{ if .SolvedPart1 }}
+            {{ template "answer-form" (dict "id" .ID "part" 2) }}
+          {{ else }}
+            {{ template "answer-form" (dict "id" .ID "part" 1) }}
+          {{ end }}
+        {{ end }}
+      </section>
+    </footer>
   </article>
 </main>
 
 {{ define "download-input" }}
   <div class="grid">
-    <a
-      role="button"
-      class="outline"
-      href="/problems/{{ .ID }}/input"
-      target="_blank"
-    >
+    <a role="button" class="outline" href="/problems/{{ .ID }}/input" target="_blank">
       View Input
     </a>
     <button class="outline secondary copy-input">Copy Input</button>
   </div>
+{{ end }}
+
+{{ define "solved" }}
 {{ end }}
 
 {{ define "answer-form" }}
@@ -78,7 +80,7 @@
       type="text"
       class="answer"
       name="answer"
-      placeholder="Answer"
+      placeholder="Part {{ .part }} Answer"
       pattern="[0-9]*"
       autocomplete="off"
       required

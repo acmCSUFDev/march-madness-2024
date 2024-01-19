@@ -1,0 +1,21 @@
+#leaderboard {
+  table {
+    th {
+      font-weight: bold;
+    }
+
+    tbody th {
+      width: 20%;
+    }
+  }
+
+  #points-chart {
+    aspect-ratio: 800 / 500;
+    max-height: 600px;
+    width: 100%;
+
+    &:empty {
+      display: none;
+    }
+  }
+}

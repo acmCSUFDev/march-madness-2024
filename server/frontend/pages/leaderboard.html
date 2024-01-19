@@ -1,0 +1,147 @@
+{{ template "head" }}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/uplot@1.6.28/dist/uPlot.min.css" />
+<title>Leaderboard</title>
+
+{{ template "header" . }}
+
+
+<main class="container" id="leaderboard">
+  <article>
+    <h1>Leaderboard</h1>
+
+    {{ $leaderboard := .TeamPointsTable }}
+    <table>
+      <thead>
+        <tr>
+          <th>team</th>
+          {{ range $leaderboard.Reasons }}
+            <th>{{ . }}</th>
+          {{ end }}
+        </tr>
+      </thead>
+      <tbody>
+        {{ range $i, $team := $leaderboard.Teams }}
+          <tr>
+            <th>{{ $team }}</th>
+            {{ range (index $leaderboard.Points $i) }}
+              <td>{{ . }}</td>
+            {{ end }}
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+
+    <footer>
+      <h2>History</h2>
+      <div id="points-chart"></div>
+      {{ $events := .TeamPointsEvents }}
+      <script>
+        window.teamPointsEvents = JSON.parse({{ toJson $events }})
+        window.teams = JSON.parse({{ toJson .TeamPointsTable.Teams }})
+        window.startedAt = Date.parse("{{ rfc3339 .StartedAt}}")
+      </script>
+      <noscript>
+        <p class="error">You need JavaScript to see the chart.</p>
+      </noscript>
+    </footer>
+  </article>
+</main>
+
+<script type="module">
+  import * as charts from "https://cdn.jsdelivr.net/npm/lightweight-charts@4.1/dist/lightweight-charts.standalone.production.mjs";
+
+  const { teams, teamPointsEvents, startedAt } = window;
+
+  const styles = window.getComputedStyle(document.body);
+  const mutedColor = styles.getPropertyValue("--muted-color");
+
+  const colors = [
+    "#1f77b4",
+    "#ff7f0e",
+    "#2ca02c",
+    "#d62728",
+    "#9467bd",
+    "#8c564b",
+    "#e377c2",
+    "#7f7f7f",
+    "#bcbd22",
+    "#17becf",
+  ];
+
+  function uniq(xs) {
+    return [...new Set(xs)];
+  }
+
+  function newFilledArray(length, val) {
+    return Array.from({ length }, () => val);
+  }
+
+  const chart = charts.createChart(document.getElementById("points-chart"), {
+    autoSize: true,
+    handleScale: false,
+    handleScroll: true,
+    grid: {
+      vertLines: { visible: false },
+      horzLines: { visible: true, color: mutedColor },
+    },
+    layout: {
+      background: { type: "solid", color: "transparent" },
+      textColor: styles.color,
+      fontFamily: styles.fontFamily,
+    },
+    rightPriceScale: {
+      ticksVisible: false,
+      borderVisible: false,
+    },
+    timeScale: {
+      lockVisibleTimeRangeOnResize: true,
+      borderVisible: false,
+      timeVisible: true,
+      secondsVisible: false,
+    },
+  });
+
+  teams
+    .slice()
+    .reverse()
+    .forEach((team) => {
+      const series = chart.addLineSeries({
+        title: team,
+        color: colors[teams.indexOf(team) % colors.length],
+        lineWidth: 2,
+        priceFormat: {
+          type: "price",
+          precision: 0,
+          minMove: 1,
+        },
+        pointMarkersVisible: true,
+      });
+      series.setData([
+        { time: startedAt / 1000, value: 0 },
+        ...teamPointsEvents
+          .filter((e) => e.team_name == team)
+          .map(
+            ((acc) => (e) => ({
+              time: Date.parse(e.added_at) / 1000,
+              value: (acc += e.points),
+            }))(0),
+          ),
+      ]);
+    });
+
+  const timeScale = chart.timeScale();
+  timeScale.fitContent();
+
+  // const range = chart.timeScale().getVisibleRange();
+  // if (range) {
+  //   const day = 24 * 60 * 60;
+  //   console.log(range);
+  //   range.to = Math.ceil((range.to - startedAt / 1000) / day) * day + startedAt / 1000; // round up to next day
+  //   console.log(range);
+  //   timeScale.setVisibleRange(range);
+  // }
+</script>
+
+<!-- -->
+
+{{ template "footer" . }}

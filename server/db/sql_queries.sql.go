@@ -329,13 +329,19 @@ func (q *Queries) RecordSubmission(ctx context.Context, arg RecordSubmissionPara
 }
 
 const teamPoints = `-- name: TeamPoints :many
-SELECT team_name, SUM(points) AS points FROM team_points
-	GROUP BY team_name
-	ORDER BY points DESC
+SELECT
+		teams.team_name,
+		team_points.reason,
+		SUM(team_points.points) AS points
+	FROM team_points
+	RIGHT JOIN teams ON teams.team_name = team_points.team_name
+	GROUP BY teams.team_name, team_points.reason
+	ORDER BY team_points.points DESC
 `
 
 type TeamPointsRow struct {
 	TeamName string
+	Reason   sql.NullString
 	Points   sql.NullFloat64
 }
 
@@ -348,7 +354,39 @@ func (q *Queries) TeamPoints(ctx context.Context) ([]TeamPointsRow, error) {
 	var items []TeamPointsRow
 	for rows.Next() {
 		var i TeamPointsRow
-		if err := rows.Scan(&i.TeamName, &i.Points); err != nil {
+		if err := rows.Scan(&i.TeamName, &i.Reason, &i.Points); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const teamPointsHistory = `-- name: TeamPointsHistory :many
+SELECT team_name, added_at, points, reason FROM team_points ORDER BY added_at ASC
+`
+
+func (q *Queries) TeamPointsHistory(ctx context.Context) ([]TeamPoint, error) {
+	rows, err := q.db.QueryContext(ctx, teamPointsHistory)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TeamPoint
+	for rows.Next() {
+		var i TeamPoint
+		if err := rows.Scan(
+			&i.TeamName,
+			&i.AddedAt,
+			&i.Points,
+			&i.Reason,
+		); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
