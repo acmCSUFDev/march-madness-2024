@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"io"
 	"io/fs"
@@ -469,7 +470,11 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 
 		err = s.database.Tx(func(q *db.Queries) error {
 			_, err := s.database.RecordSubmission(ctx, db.RecordSubmissionParams{
-				TeamName:  u.TeamName,
+				TeamName: u.TeamName,
+				SubmittedBy: sql.NullString{
+					String: u.Username,
+					Valid:  true,
+				},
 				ProblemID: problemID,
 				Correct:   correct,
 			})

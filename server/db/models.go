@@ -5,6 +5,7 @@
 package db
 
 import (
+	"database/sql"
 	"time"
 )
 
@@ -34,4 +35,5 @@ type TeamSubmitAttempt struct {
 	ProblemID   string
 	SubmittedAt time.Time
 	Correct     bool
+	SubmittedBy sql.NullString
 }

@@ -46,3 +46,10 @@ CREATE TABLE team_points (
 	FOREIGN KEY (team_name) REFERENCES teams (team_name));
 
 CREATE INDEX team_points_team_name_idx ON team_points (team_name);
+
+--------------------------------- NEW VERSION ---------------------------------
+
+-- We want to track who submitted what, so we need to add a column to
+-- team_submit_attempts.
+ALTER TABLE team_submit_attempts ADD COLUMN
+	submitted_by TEXT REFERENCES team_members (user_name);

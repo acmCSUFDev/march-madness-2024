@@ -197,7 +197,7 @@ func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) (TeamMembe
 }
 
 const listSubmissions = `-- name: ListSubmissions :many
-SELECT team_name, problem_id, submitted_at, correct FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
+SELECT team_name, problem_id, submitted_at, correct, submitted_by FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
 	ORDER BY submitted_at ASC
 `
 
@@ -220,6 +220,7 @@ func (q *Queries) ListSubmissions(ctx context.Context, arg ListSubmissionsParams
 			&i.ProblemID,
 			&i.SubmittedAt,
 			&i.Correct,
+			&i.SubmittedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -299,23 +300,30 @@ func (q *Queries) ListTeams(ctx context.Context) ([]Team, error) {
 }
 
 const recordSubmission = `-- name: RecordSubmission :one
-INSERT INTO team_submit_attempts (team_name, problem_id, correct) VALUES (?, ?, ?) RETURNING team_name, problem_id, submitted_at, correct
+INSERT INTO team_submit_attempts (team_name, submitted_by, problem_id, correct) VALUES (?, ?, ?, ?) RETURNING team_name, problem_id, submitted_at, correct, submitted_by
 `
 
 type RecordSubmissionParams struct {
-	TeamName  string
-	ProblemID string
-	Correct   bool
+	TeamName    string
+	SubmittedBy sql.NullString
+	ProblemID   string
+	Correct     bool
 }
 
 func (q *Queries) RecordSubmission(ctx context.Context, arg RecordSubmissionParams) (TeamSubmitAttempt, error) {
-	row := q.db.QueryRowContext(ctx, recordSubmission, arg.TeamName, arg.ProblemID, arg.Correct)
+	row := q.db.QueryRowContext(ctx, recordSubmission,
+		arg.TeamName,
+		arg.SubmittedBy,
+		arg.ProblemID,
+		arg.Correct,
+	)
 	var i TeamSubmitAttempt
 	err := row.Scan(
 		&i.TeamName,
 		&i.ProblemID,
 		&i.SubmittedAt,
 		&i.Correct,
+		&i.SubmittedBy,
 	)
 	return i, err
 }

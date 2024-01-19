@@ -59,10 +59,15 @@
 
 {{ define "download-input" }}
   <div class="grid">
-    <a role="button" href="/problems/{{ .ID }}/input" target="_blank">
-      See Input
+    <a
+      role="button"
+      class="outline"
+      href="/problems/{{ .ID }}/input"
+      target="_blank"
+    >
+      View Input
     </a>
-    <button class="secondary copy-input">Copy Input</button>
+    <button class="outline secondary copy-input">Copy Input</button>
   </div>
 {{ end }}
 
@@ -75,6 +80,7 @@
       name="answer"
       placeholder="Answer"
       pattern="[0-9]*"
+      autocomplete="off"
       required
     />
     <button type="submit">Submit</button>
@@ -99,6 +105,19 @@
         button.textContent = label;
         button.disabled = false;
       }, 2000);
+    });
+  });
+
+  document.querySelectorAll(".part pre code").forEach((code) => {
+    code.addEventListener("click", (ev) => {
+      if (ev.detail === 3) {
+        const range = document.createRange();
+        range.selectNode(code);
+
+        const selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
     });
   });
 </script>

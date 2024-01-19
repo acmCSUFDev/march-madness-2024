@@ -11,7 +11,7 @@ DELETE FROM team_members WHERE team_name = ? AND user_name = ? RETURNING *;
 SELECT is_leader FROM team_members WHERE team_name = ? AND user_name = ?;
 
 -- name: RecordSubmission :one
-INSERT INTO team_submit_attempts (team_name, problem_id, correct) VALUES (?, ?, ?) RETURNING *;
+INSERT INTO team_submit_attempts (team_name, submitted_by, problem_id, correct) VALUES (?, ?, ?, ?) RETURNING *;
 
 -- name: HasSolved :one
 SELECT COUNT(*) FROM team_submit_attempts WHERE team_name = ? AND problem_id = ? AND correct = TRUE;
