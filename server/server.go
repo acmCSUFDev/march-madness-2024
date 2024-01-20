@@ -65,6 +65,7 @@ func New(
 		r.Get("/", s.index)
 		r.Route("/join", s.routeJoin)
 		r.Route("/problems", s.routeProblems)
+		r.Route("/hackathon", s.routeHackathon)
 		r.Route("/leaderboard", s.routeLeaderboard)
 	})
 

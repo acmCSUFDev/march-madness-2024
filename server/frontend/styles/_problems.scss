@@ -1,5 +1,6 @@
 @use "variables" as *;
 @use "pico" as *;
+@use "main" as *;
 
 #problems {
   ul,
@@ -41,12 +42,12 @@
 
 #problem {
   strong {
-    text-shadow: 0 0 0.2em #{$grey-300};
+    text-shadow: #{$highlight-glow};
     font-weight: 400;
     color: #{$grey-100};
 
     &.primary {
-      text-shadow: 0 0 0.2em #{$primary-500};
+      text-shadow: #{$highlight-glow-primary};
       color: #{$primary-300};
     }
   }

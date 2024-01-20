@@ -1,0 +1,60 @@
+{{ template "head" }}
+<title>Mini Hackathon</title>
+
+{{ template "header" . }}
+
+
+<main class="container" id="hackathon">
+  <article>
+    <header>
+      <img alt="walrus banner" src="https://beringia.com/sites/default/files/walrus-banner.jpg" />
+    </header>
+
+    <hgroup>
+      <h1>Mini Hackathon</h1>
+      <p>
+        <b>Think</b>, <b>create</b> and <b>present</b> at this mini hackathon geared towards
+        beginners
+      </p>
+    </hgroup>
+
+    <section>
+      <p><strong>Move quickly, you've only got 2 hours!</strong></p>
+    </section>
+
+    <section class="theme">
+      <h2>Theme</h2>
+      <p>This hackathon is about <strong class="primary">walruses</strong>!</p>
+      <p>
+        Walruses are large marine mammals that live in the Arctic. They are known for their long
+        tusks and their ability to sleep while floating in the water. They are also known for their
+        loud bellowing noises.
+      </p>
+    </section>
+
+    <section class="categories">
+      <h2>Categories</h2>
+      <ul>
+        <!-- interactive, for the lazy, otherworldly, non-AI -->
+        <li>
+          <h4>Interactive</h4>
+          <p>Build an interactive experience!</p>
+        </li>
+        <li>
+          <h4>For the lazy</h4>
+          <p>Build something that makes life easier!</p>
+        </li>
+        <li>
+          <h4>Otherworldly</h4>
+          <p>Build something that is out of this world!</p>
+        </li>
+        <li>
+          <h4>Non-AI</h4>
+          <p>Build something that doesn't use AI!</p>
+        </li>
+      </ul>
+    </section>
+  </article>
+</main>
+
+{{ template "footer" . }}

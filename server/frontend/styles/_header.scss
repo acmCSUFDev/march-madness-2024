@@ -1,6 +1,13 @@
 @use "variables" as *;
+@use "pico" as *;
 
 nav#header {
+  background-color: rgba($primary-900, 0.75);
+  position: sticky;
+  top: 0;
+  backdrop-filter: blur(10px);
+  z-index: 1;
+
   .team-name {
     visibility: hidden;
   }

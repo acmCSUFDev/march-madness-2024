@@ -1,11 +1,19 @@
+@use "variables" as *;
+
 #leaderboard {
   table {
     th {
       font-weight: bold;
     }
 
+    td {
+      font-family: $code-font-family;
+      font-weight: $code-font-weight;
+      font-size: 1.15em;
+    }
+
     tbody th {
-      width: 20%;
+      width: 50%;
     }
   }
 

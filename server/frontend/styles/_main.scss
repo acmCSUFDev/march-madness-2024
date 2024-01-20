@@ -1,6 +1,17 @@
 @use "variables" as *;
 @use "pico" as *;
 
+$highlight-glow: 0 0 0.2em #{$grey-300};
+$highlight-glow-primary: 0 0 0.2em #{$primary-500};
+
+@mixin highlight-glow {
+  text-shadow: #{$highlight-glow};
+}
+
+@mixin highlight-glow-primary {
+  text-shadow: #{$highlight-glow-primary};
+}
+
 @mixin root {
   --font-family: #{$font-family};
   --font-size: #{$font-size};
