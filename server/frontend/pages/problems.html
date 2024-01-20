@@ -46,29 +46,16 @@
   </article>
 </main>
 
-<script>
+<script type="module">
+  import * as countdown from "/static/countdown.js";
+
   document.querySelectorAll(".not-available").forEach((li) => {
     const time = li.querySelector("time");
-    const target = new Date(time.getAttribute("datetime")).getTime();
-    let id;
-    const update = () => {
-      const now = new Date().getTime();
-      const distance = target - now;
-      const h = Math.floor(distance / (1000 * 60 * 60));
-      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((distance % (1000 * 60)) / 1000);
-      const parts = [h, m, s].map((n) => n.toString().padStart(2, "0"));
-      time.textContent = parts.join(":");
-
-      if (distance <= 0) {
-        clearInterval(id);
-        li.classList.remove("not-available");
-        const a = li.querySelector("a");
-        a.href = "/problems/" + a.dataset.problem;
-      }
-    };
-    id = setInterval(update, 1000);
-    update();
+    countdown.start(time, countdown.formatDurationClock, () => {
+      li.classList.remove("not-available");
+      const a = li.querySelector("a");
+      a.href = "/problems/" + a.dataset.problem;
+    });
   });
 </script>
 

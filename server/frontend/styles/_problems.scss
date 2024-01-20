@@ -20,6 +20,7 @@
       outline: 2px solid var(--primary);
       outline-offset: -2px;
       opacity: 0.75;
+      color: var(--primary);
       cursor: not-allowed;
       transition: all 0.5s ease-in-out;
     }
@@ -44,7 +45,6 @@
   strong {
     text-shadow: #{$highlight-glow};
     font-weight: 400;
-    color: #{$grey-100};
 
     &.primary {
       text-shadow: #{$highlight-glow-primary};

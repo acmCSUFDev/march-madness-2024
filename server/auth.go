@@ -45,7 +45,7 @@ func (s *Server) setTokenCookie(w http.ResponseWriter, u authenticatedUser) {
 	token.SetString("u", u.Username)
 	token.SetString("t", u.TeamName)
 
-	signed := token.V4Sign(s.secretKey, nil)
+	signed := token.V4Sign(s.config.SecretKey, nil)
 
 	http.SetCookie(w, &http.Cookie{
 		Name:     "token",
@@ -58,7 +58,7 @@ func (s *Server) setTokenCookie(w http.ResponseWriter, u authenticatedUser) {
 
 func (s *Server) authMiddleware(next http.Handler) http.Handler {
 	parser := paseto.NewParser()
-	public := s.secretKey.Public()
+	public := s.config.SecretKey.Public()
 
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")

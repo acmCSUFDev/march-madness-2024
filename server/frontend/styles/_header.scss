@@ -1,11 +1,13 @@
 @use "variables" as *;
 @use "pico" as *;
+@use "main" as *;
 
 nav#header {
-  background-color: rgba($primary-900, 0.75);
+  background-color: var(--nav-background-color);
   position: sticky;
   top: 0;
   backdrop-filter: blur(10px);
+  box-shadow: 0 0 12px -0px rgba($black, 0.25);
   z-index: 1;
 
   .team-name {
@@ -19,7 +21,7 @@ nav#header {
 
   .brand {
     font-family: $headings-font-family;
-    font-weight: $headings-font-weight;
+    font-weight: 700;
   }
 
   @media (max-width: 400px) {

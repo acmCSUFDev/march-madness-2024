@@ -23,40 +23,44 @@
 
 
     <footer>
-      <section>
-        <h2>Input</h2>
-        {{ template "download-input" . }}
-      </section>
+      {{ if .TeamName }}
+        <section>
+          <h2>Input</h2>
+          {{ template "download-input" . }}
+        </section>
 
-      <section>
-        <h2>Output</h2>
-        {{ if or .SolvedPart1 .SolvedPart2 }}
-          <p>
-            {{ if and .SolvedPart1 (not .SolvedPart2) }}
-              <strong class="primary">You've solved part 1!</strong>
-            {{ else }}
-              <strong class="primary">You've solved both parts!</strong>
-            {{ end }}
-            This nets you a total of
-            <strong class="primary">
+        <section>
+          <h2>Output</h2>
+          {{ if or .SolvedPart1 .SolvedPart2 }}
+            <p>
               {{ if and .SolvedPart1 (not .SolvedPart2) }}
-                {{ .PointsPerPart }}
+                <strong class="primary">You've solved part 1!</strong>
               {{ else }}
-                {{ mul .PointsPerPart 2 }}
+                <strong class="primary">You've solved both parts!</strong>
               {{ end }}
-            </strong>
-            points.
-          </p>
-        {{ end }}
-
-        {{ if not (and .SolvedPart1 .SolvedPart2) }}
-          {{ if .SolvedPart1 }}
-            {{ template "answer-form" (dict "id" .ID "part" 2) }}
-          {{ else }}
-            {{ template "answer-form" (dict "id" .ID "part" 1) }}
+              This nets you a total of
+              <strong class="primary">
+                {{ if and .SolvedPart1 (not .SolvedPart2) }}
+                  {{ .PointsPerPart }}
+                {{ else }}
+                  {{ mul .PointsPerPart 2 }}
+                {{ end }}
+              </strong>
+              points.
+            </p>
           {{ end }}
-        {{ end }}
-      </section>
+
+          {{ if not (and .SolvedPart1 .SolvedPart2) }}
+            {{ if .SolvedPart1 }}
+              {{ template "answer-form" (dict "id" .ID "part" 2) }}
+            {{ else }}
+              {{ template "answer-form" (dict "id" .ID "part" 1) }}
+            {{ end }}
+          {{ end }}
+        </section>
+      {{ else }}
+        <p>You must <a href="/join">join or create a team</a> to view the input!</p>
+      {{ end }}
     </footer>
   </article>
 </main>
@@ -68,9 +72,6 @@
     </a>
     <button class="outline secondary copy-input">Copy Input</button>
   </div>
-{{ end }}
-
-{{ define "solved" }}
 {{ end }}
 
 {{ define "answer-form" }}

@@ -1,12 +1,8 @@
 @use "variables" as *;
-@use "pico" with (
-  $primary-hue: $primary-hue,
-  $grey-hue: $primary-hue
-);
 @use "main";
 @use "join";
-@use "index";
 @use "header";
+@use "bubbles";
 @use "problems";
 @use "hackathon";
 @use "leaderboard";

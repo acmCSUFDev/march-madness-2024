@@ -20,6 +20,12 @@
       background-color: rgba($primary-200, 0.35);
       backdrop-filter: blur(2px);
     }
+
+    img {
+      width: 100%;
+      height: clamp(200px, 25vh, 350px);
+      object-fit: cover;
+    }
   }
 
   .primary {
@@ -46,4 +52,16 @@
       margin-bottom: 0;
     }
   }
+
+  .countdown {
+    text-align: center;
+  }
+
+  .countdown-clock {
+    display: block;
+    width: 100%;
+    text-align: center;
+    font-size: 2.5em;
+  }
+  margin-bottom: var(--spacing);
 }

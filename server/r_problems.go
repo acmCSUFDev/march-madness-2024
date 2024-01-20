@@ -37,7 +37,7 @@ func (s *Server) listProblems(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
-		Problems: s.problems.ProblemSet,
+		Problems: s.problems,
 	})
 }
 
@@ -64,11 +64,11 @@ func (s *Server) viewProblem(w http.ResponseWriter, r *http.Request) {
 	if u.TeamName != "" {
 		p1solves, _ = s.database.HasSolved(ctx, db.HasSolvedParams{
 			TeamName:  u.TeamName,
-			ProblemID: s.problems.ProblemIDs[id] + "/part1",
+			ProblemID: s.config.ProblemIDs[id] + "/part1",
 		})
 		p2solves, _ = s.database.HasSolved(ctx, db.HasSolvedParams{
 			TeamName:  u.TeamName,
-			ProblemID: s.problems.ProblemIDs[id] + "/part2",
+			ProblemID: s.config.ProblemIDs[id] + "/part2",
 		})
 	}
 
@@ -137,7 +137,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	problemID := s.problems.ProblemIDs[id] + fmt.Sprintf("/part%d", data.Part)
+	problemID := s.config.ProblemIDs[id] + fmt.Sprintf("/part%d", data.Part)
 
 	var numSolves int64
 	var numAttempts int64

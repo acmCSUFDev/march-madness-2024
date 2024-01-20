@@ -12,8 +12,7 @@
 
     {{ if gt .Cooldown 0 }}
       <p>
-        Because you have submitted an incorrect answer too many times, you will
-        have to wait
+        Because you have submitted an incorrect answer too many times, you will have to wait
         <strong>
           <time datetime="{{ .CooldownTime | rfc3339 }}" class="countdown">
             {{ .Cooldown | formatDuration }}
@@ -39,31 +38,12 @@
   </article>
 </main>
 
-<script>
+<script type="module">
+  import * as countdown from "/static/countdown.js";
+
   document.querySelectorAll(".countdown").forEach((time) => {
-    const target = new Date(time.getAttribute("datetime")).getTime();
-    let id;
-    const update = () => {
-      const now = new Date().getTime();
-      const distance = target - now;
-      const h = Math.floor(distance / (1000 * 60 * 60));
-      const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-      const s = Math.floor((distance % (1000 * 60)) / 1000);
-
-      if (h > 0) {
-        time.textContent = `${h}h ${m}m ${s}s`;
-      } else if (m > 0) {
-        time.textContent = `${m}m ${s}s`;
-      } else {
-        time.textContent = `${s}s`;
-      }
-
-      if (distance <= 0) {
-        clearInterval(id);
-      }
-    };
-    id = setInterval(update, 1000);
-    update();
+    const target = new Date(time.getAttribute("datetime"));
+    countdown.start(time, target, countdown.formatDurationString);
   });
 </script>
 

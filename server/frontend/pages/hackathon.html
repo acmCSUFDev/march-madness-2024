@@ -54,7 +54,53 @@
         </li>
       </ul>
     </section>
+
+    <section>
+      {{ $begun := and (.StartTime.Before now) (.EndTime.After now) }}
+      {{ if $begun }}
+        <p class="countdown">
+          <strong>Submissions are open for</strong>
+          <time class="countdown-clock" datetime="{{ rfc3339 .EndTime }}">
+            {{ .EndTime.Sub now | formatDuration }}
+          </time>
+        </p>
+      {{ end }}
+
+
+      <div class="grid">
+        <a
+          role="button"
+          {{ if $begun }}
+            href="{{ .SubmissionLink }}" target="_blank"
+          {{ else }}
+            disabled class="outline"
+          {{ end }}
+        >
+          {{ if $begun }}
+            Submit your project!
+          {{ end }}
+          {{ if .StartTime.After now }}
+            Submissions will be available once the event begins.
+          {{ end }}
+          {{ if .EndTime.Before now }}
+            Submissions are closed.
+          {{ end }}
+        </a>
+      </div>
+    </section>
   </article>
 </main>
+
+<script type="module">
+  import * as countdown from "/static/countdown.js";
+
+  const time = document.querySelector(".countdown-clock");
+  if (time) {
+    countdown.start(time, countdown.formatDurationClock, () => {
+      // I'm lazy lol. Just reload the page.
+      document.location.reload();
+    });
+  }
+</script>
 
 {{ template "footer" . }}

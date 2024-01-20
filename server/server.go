@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"time"
 
-	"aidanwoods.dev/go-paseto"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"libdb.so/february-frenzy/server/db"
@@ -18,35 +17,35 @@ import (
 
 type Server struct {
 	*chi.Mux
-	secretKey paseto.V4AsymmetricSecretKey
-	problems  ProblemSet
-	template  *tmplutil.Templater
-	database  *db.Database
-	logger    *slog.Logger
+	config ServerConfig
+
+	problems *problem.ProblemSet
+	template *tmplutil.Templater
+	database *db.Database
+	logger   *slog.Logger
 }
 
-type ProblemSet struct {
-	*problem.ProblemSet
-	// ProblemIDs is a list of problem IDs corresponding to the problems in
-	// the ProblemSet. This is solely for internal use and should not be
-	// exposed to the user.
-	ProblemIDs []string
+type ServerConfig struct {
+	FrontendDir             fs.FS
+	SecretKey               SecretKey
+	ProblemIDs              []string
+	Problems                *problem.ProblemSet
+	Database                *db.Database
+	Logger                  *slog.Logger
+	HackathonStart          time.Time
+	HackathonDuration       time.Duration
+	HackathonSubmissionLink string
+	OpenRegistrationTime    time.Time
 }
 
 // New creates a new server.
-func New(
-	frontendDir fs.FS,
-	secretKey SecretKey,
-	problems ProblemSet,
-	database *db.Database,
-	logger *slog.Logger,
-) *Server {
+func New(config ServerConfig) *Server {
 	s := &Server{
-		template:  frontend.NewTemplater(frontendDir),
-		secretKey: secretKey,
-		problems:  problems,
-		database:  database,
-		logger:    logger,
+		config:   config,
+		template: frontend.NewTemplater(config.FrontendDir),
+		problems: config.Problems,
+		database: config.Database,
+		logger:   config.Logger,
 	}
 
 	s.Mux = chi.NewRouter()
@@ -72,7 +71,7 @@ func New(
 	r.Route("/static", func(r chi.Router) {
 		r.Use(middleware.Compress(5))
 		r.Use(middleware.SetHeader("Cache-Control", "public, must-revalidate"))
-		r.Mount("/", frontend.StaticHandler(frontendDir))
+		r.Mount("/", frontend.StaticHandler(config.FrontendDir))
 	})
 
 	return s

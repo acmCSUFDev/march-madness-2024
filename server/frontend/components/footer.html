@@ -1,8 +1,5 @@
 {{ define "footer-person" }}
-  <a
-    class="secondary"
-    data-tooltip="{{ .secret }}"
-    href="https://github.com/{{ .github }}"
+  <a class="secondary" data-tooltip="{{ .secret }}" href="https://github.com/{{ .github }}"
     >{{ .name }}</a
   >
 {{- end }}
@@ -40,20 +37,12 @@
       "github" "JustinStitt")
     }}
     for
-    <a
-      class="secondary"
-      data-tooltip="Largest CS community at CSUF!"
-      href="https://acmcsuf.com"
+    <a class="secondary" data-tooltip="Largest CS community at CSUF!" href="https://acmcsuf.com"
       >acmCSUF</a
     >
     <br />
     Built using
-    <a
-      class="secondary"
-      data-tooltip="Pretty goated ngl"
-      href="https://picocss.com/"
-      >Pico.css</a
-    >
+    <a class="secondary" data-tooltip="Pretty goated ngl" href="https://picocss.com/">Pico.css</a>
     •
     <a
       class="secondary"
@@ -61,5 +50,25 @@
       href="https://github.com/diamondburned/february-frenzy"
       >Source Code</a
     >
+    <span id="toggle-bubbles"></span>
   </small>
 </footer>
+
+<script type="module" async defer>
+  import * as bubbles from "/static/bubbles.js";
+
+  const link = document.createElement("a");
+  const linkLabel = () => (bubbles.enabled() ? "Disable Bubbles" : "Enable Bubbles");
+  link.href = "#";
+  link.classList.add("secondary");
+  link.textContent = linkLabel();
+  link.onclick = (ev) => {
+    ev.preventDefault();
+    bubbles.toggleBubbles();
+    link.textContent = linkLabel();
+  };
+
+  const toggle = document.getElementById("toggle-bubbles");
+  toggle.append(" • ");
+  toggle.append(link);
+</script>

@@ -94,16 +94,18 @@ func run(ctx context.Context) error {
 		ReleaseEvery:   config.Problems.Schedule.Every.Duration(),
 	})
 
-	server := server.New(
-		frontendDir,
-		secretKey,
-		server.ProblemSet{
-			ProblemSet: problemset,
-			ProblemIDs: config.Problems.Paths,
-		},
-		database,
-		logger.With("component", "http"),
-	)
+	server := server.New(server.ServerConfig{
+		FrontendDir:             frontendDir,
+		SecretKey:               secretKey,
+		ProblemIDs:              config.Problems.Paths,
+		Problems:                problemset,
+		Database:                database,
+		Logger:                  logger.With("component", "http"),
+		HackathonStart:          config.Hackathon.StartTime,
+		HackathonDuration:       config.Hackathon.Duration.Duration(),
+		HackathonSubmissionLink: config.Hackathon.SubmissionLink,
+		OpenRegistrationTime:    config.OpenRegistrationTime,
+	})
 
 	handler := http.Handler(server)
 	if verbose {

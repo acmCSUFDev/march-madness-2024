@@ -21,5 +21,11 @@
       "start": "2024-01-18T22:52:18-08:00",
       "every": "48h"
     }
-  }
+  },
+  "hackathon": {
+    "start_time": "2024-01-18T22:52:18-08:00",
+    "duration": "48h",
+    "submission_link": "https://google.com"
+  },
+  "open_registration_time": "2024-01-18T22:52:18-08:00"
 }

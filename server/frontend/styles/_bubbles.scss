@@ -1,0 +1,67 @@
+@use "variables" as *;
+@use "pico" as *;
+
+@keyframes animateBubble {
+  0% {
+    margin-top: var(--startY);
+  }
+  100% {
+    margin-top: -100vh;
+  }
+}
+
+@keyframes sideWays {
+  0% {
+    margin-left: 0px;
+  }
+  100% {
+    margin-left: calc(var(--wobble-scale) * 50px);
+  }
+}
+
+#bubbles-background {
+  --page-height: 100vh;
+
+  overflow: hidden;
+  position: absolute;
+  z-index: -1;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: var(--page-height);
+
+  .bubble {
+    --left: -5%;
+    --size: 100px;
+    --startY: 1000px;
+    --duration: 25s;
+    --wobble-scale: 1;
+    --wobble-duration: 2s;
+
+    position: fixed;
+    animation:
+      animateBubble var(--duration) linear infinite,
+      sideWays var(--wobble-duration) ease-in-out infinite alternate;
+    transform: scale(var(--scale));
+    left: var(--left);
+    top: 5%;
+
+    border-radius: 50%;
+    background-color: rgba($grey-300, 0.2);
+
+    position: absolute;
+    width: var(--size);
+    height: var(--size);
+  }
+
+  opacity: 1;
+  transition: opacity 0.25s ease-in-out;
+
+  &.disabled {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    display: none;
+  }
+}

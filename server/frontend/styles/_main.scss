@@ -1,8 +1,16 @@
 @use "variables" as *;
-@use "pico" as *;
+@use "pico" as * with (
+  $primary-hue: $primary-hue,
+  $grey-hue: $primary-hue
+);
 
-$highlight-glow: 0 0 0.2em #{$grey-300};
-$highlight-glow-primary: 0 0 0.2em #{$primary-500};
+:root,
+:root:not([data-theme]) {
+  @include root;
+}
+
+$highlight-glow: 0 0 0.2em var(--glow-color);
+$highlight-glow-primary: 0 0 0.2em var(--glow-color-primary);
 
 @mixin highlight-glow {
   text-shadow: #{$highlight-glow};
@@ -12,20 +20,37 @@ $highlight-glow-primary: 0 0 0.2em #{$primary-500};
   text-shadow: #{$highlight-glow-primary};
 }
 
-@mixin root {
-  --font-family: #{$font-family};
-  --font-size: #{$font-size};
-  --border-radius: #{$border-radius};
-  --border-width: 2px;
-  --line-height: #{$line-height};
-  --code-color: var(--color);
-  --grid-spacing-vertical: var(--spacing);
-  --grid-spacing-horizontal: var(--spacing);
+@mixin light {
+  --glow-color: #{$grey-300};
+  --glow-color-primary: #{$primary-200};
+  --card-background-color: #{rgba($white, $card-opacity-light)};
+  --nav-background-color: #{rgba($primary-200, 0.75)};
+  --article-card-color: #{$white};
+  --bubbles-color: #{$grey-900};
+}
+
+@mixin dark {
+  --glow-color: #{$grey-300};
+  --glow-color-primary: #{$primary-500};
+  --card-background-color: #{rgba(mix($black, $grey-900, 25%), $card-opacity-dark)};
+  --nav-background-color: #{rgba($primary-900, 0.75)};
+  --article-card-color: #{$grey-900};
+  --bubble-color: #{$grey-300};
 }
 
 :root,
 :root:not([data-theme]) {
-  @include root;
+  @include light;
+}
+
+@media only screen and (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    @include dark;
+  }
+}
+
+[data-theme="dark"] {
+  @include dark;
 }
 
 body {
@@ -46,12 +71,8 @@ pre > code {
 
 h1,
 h2,
-h3,
-h4,
-h5,
-h6 {
-  font-family: $headings-font-family;
-  font-weight: 700;
+h3 {
+  font-weight: 800;
 }
 
 p.error {
@@ -79,4 +100,22 @@ time.countdown {
 
 hr {
   margin: var(--block-spacing-vertical) 0;
+}
+
+article {
+  backdrop-filter: blur(var(--card-blur));
+  overflow: hidden;
+}
+
+article > header {
+  box-shadow: 0 -12px 20px 0px rgba($grey-900, 0.5);
+}
+
+article > footer {
+  box-shadow: 0 12px 20px 0px rgba($grey-900, 0.5);
+}
+
+article > header,
+article > footer {
+  background-color: var(--article-card-color);
 }

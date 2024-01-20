@@ -1,9 +1,7 @@
 <nav id="header" class="container-fluid">
   <ul>
     <li class="brand">
-      <a href="/" class="contrast">
-        <strong>ACM February Frenzy</strong>
-      </a>
+      <a href="/" class="contrast">ACM February Frenzy</a>
     </li>
   </ul>
 
@@ -22,7 +20,9 @@
     </li>
     {{ if .TeamName }}
       <li>
-        <span class="contrast">[{{ .Username }} / {{ .TeamName }}]</span>
+        <span class="contrast" data-tooltip="Team {{ .TeamName }}" data-placement="left">
+          {{ .Username }}
+        </span>
       </li>
     {{ else }}
       <li>

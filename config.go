@@ -24,6 +24,12 @@ type Config struct {
 		} `json:"schedule"`
 		Cooldown configDuration `json:"cooldown"`
 	} `json:"problems"`
+	Hackathon struct {
+		StartTime      time.Time      `json:"start_time"`
+		Duration       configDuration `json:"duration"`
+		SubmissionLink string         `json:"submission_link"`
+	} `json:"hackathon"`
+	OpenRegistrationTime time.Time `json:"open_registration_time"`
 }
 
 func parseConfig(path string) (*Config, error) {

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"regexp"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
@@ -19,9 +20,10 @@ func (s *Server) routeJoin(r chi.Router) {
 
 type joinPageData struct {
 	frontend.ComponentContext
-	FillingUsername string
-	FillingTeamName string
-	Error           string
+	OpenRegistrationTime time.Time
+	FillingUsername      string
+	FillingTeamName      string
+	Error                string
 }
 
 func (s *Server) joinPage(w http.ResponseWriter, r *http.Request) {
@@ -31,6 +33,7 @@ func (s *Server) joinPage(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
+		OpenRegistrationTime: s.config.OpenRegistrationTime,
 	})
 }
 
@@ -46,7 +49,13 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 	isAuthenticated := isAuthenticated(r)
 
 	ctx := r.Context()
-	pageData := joinPageData{}
+	pageData := joinPageData{
+		ComponentContext: frontend.ComponentContext{
+			TeamName: u.TeamName,
+			Username: u.Username,
+		},
+		OpenRegistrationTime: s.config.OpenRegistrationTime,
+	}
 
 	writeError := func(err error) {
 		pageData.Error = err.Error()
