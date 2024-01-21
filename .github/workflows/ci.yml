@@ -1,0 +1,52 @@
+name: Build
+on:
+  push:
+  pull_request:
+jobs:
+  gomod2nix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Tidy Go modules
+        run: nix develop -c go mod tidy
+
+      - name: Update gomod2nix.toml
+        run: nix develop -c gomod2nix
+
+      - name: Commit changes (if any)
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: |-
+            Tidy up Go modules and update gomod2nix.toml
+
+            Update based on revision ${{ github.sha }}.
+  build:
+    runs-on: ubuntu-latest
+    needs: gomod2nix
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Build
+        run: nix build '.?submodules=1'
+
+  test:
+    runs-on: ubuntu-latest
+    needs: gomod2nix
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+
+      - name: Check Flakes
+        uses: DeterminateSystems/flake-checker-action@main
+
+      - name: Test
+        run: nix develop -c go test -v ./...
