@@ -60,9 +60,9 @@
       <h2>History</h2>
       <div id="points-chart"></div>
       <script>
-        window.teamPointsEvents = JSON.parse({{ toJson .Events }})
-        window.teams = JSON.parse({{ toJson .Table.Teams }})
-        window.startedAt = Date.parse("{{ rfc3339 .StartedAt}}")
+        window.teamPointsEvents = JSON.parse({{ toJson .Events }});
+        window.teams = JSON.parse({{ toJson .Table.Teams }});
+        window.startedAt = Date.parse("{{ rfc3339 .StartedAt}}");
       </script>
       <noscript>
         <p class="error">You need JavaScript to see the chart.</p>
@@ -74,11 +74,16 @@
 <script type="module">
   import * as charts from "https://cdn.jsdelivr.net/npm/lightweight-charts@4.1/dist/lightweight-charts.standalone.production.mjs";
 
-  const { teams, teamPointsEvents, startedAt } = window;
-  console.log(teams, teamPointsEvents, startedAt);
-
   const styles = window.getComputedStyle(document.body);
   const mutedColor = styles.getPropertyValue("--muted-color");
+
+  const teams = window.teams;
+  const startedAt = Math.round(window.startedAt / 1000);
+  const teamPointsEvents = window.teamPointsEvents.map((e) => ({
+    ...e,
+    added_at: Math.round(Date.parse(e.added_at) / 1000),
+  }));
+  console.log(teams, teamPointsEvents, startedAt);
 
   const colors = [
     "#1f77b4",
@@ -93,18 +98,10 @@
     "#17becf",
   ];
 
-  function uniq(xs) {
-    return [...new Set(xs)];
-  }
-
-  function newFilledArray(length, val) {
-    return Array.from({ length }, () => val);
-  }
-
   const chart = charts.createChart(document.getElementById("points-chart"), {
     autoSize: true,
-    handleScale: false,
-    handleScroll: false,
+    handleScale: true,
+    handleScroll: true,
     grid: {
       vertLines: { visible: false },
       horzLines: { visible: true, color: mutedColor },
@@ -114,19 +111,17 @@
       textColor: styles.color,
       fontFamily: styles.fontFamily,
     },
-    rightPriceScale: {
-      ticksVisible: false,
-      borderVisible: false,
-    },
     timeScale: {
       lockVisibleTimeRangeOnResize: true,
       borderVisible: false,
       timeVisible: true,
       secondsVisible: false,
+      fixLeftEdge: true,
+      fixRightEdge: true,
     },
   });
 
-  teams.forEach((team) => {
+  const series = teams.map((team) => {
     const series = chart.addLineSeries({
       title: team,
       color: colors[teams.indexOf(team) % colors.length],
@@ -138,31 +133,20 @@
       },
       pointMarkersVisible: true,
     });
+    let total = 0;
     series.setData([
-      { time: startedAt / 1000, value: 0 },
+      { time: startedAt, value: 0 },
       ...teamPointsEvents
         .filter((e) => e.team_name == team)
-        .map(
-          ((acc) => (e) => ({
-            time: Date.parse(e.added_at) / 1000,
-            value: (acc += e.points),
-          }))(0),
-        ),
+        .map((e) => {
+          total += e.points;
+          return { time: e.added_at, value: total };
+        }),
     ]);
-    console.log(series.data());
+    return series;
   });
 
   chart.timeScale().fitContent();
-
-  const range = chart.timeScale().getVisibleRange();
-  console.log(range);
-  // if (range) {
-  //   const day = 24 * 60 * 60;
-  //   console.log(range);
-  //   range.to = Math.ceil((range.to - startedAt / 1000) / day) * day + startedAt / 1000; // round up to next day
-  //   console.log(range);
-  //   timeScale.setVisibleRange(range);
-  // }
 </script>
 
 <!-- -->
