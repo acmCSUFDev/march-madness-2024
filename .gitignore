@@ -1,4 +1,6 @@
 __pycache__
-node_modules
+server/frontend/node_modules
+server/frontend/static/styles.css
+server/frontend/static/styles.css.map
 .venv
 venv
