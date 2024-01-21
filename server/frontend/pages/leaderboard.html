@@ -9,41 +9,65 @@
   <article>
     <h1>Leaderboard</h1>
 
-    {{ $leaderboard := .TeamPointsTable }}
-    <table>
-      <thead>
-        <tr>
-          <th>team</th>
-          {{ range $leaderboard.Reasons }}
-            <th>{{ . }}</th>
-          {{ end }}
-        </tr>
-      </thead>
-      <tbody>
-        {{ range $i, $team := $leaderboard.Teams }}
+    <section>
+      {{ $table := .Table }}
+      <table>
+        <thead>
           <tr>
-            <th>{{ $team }}</th>
-            {{ range (index $leaderboard.Points $i) }}
-              <td>{{ . }}</td>
+            <th>team</th>
+            {{ range $table.Reasons }}
+              <th>{{ . }}</th>
             {{ end }}
           </tr>
-        {{ end }}
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          {{ range $i, $team := $table.Teams }}
+            {{ $members := index $table.TeamMembers $i }}
+            <tr>
+              <th>
+                <span data-tooltip="Members: {{ $members | join ", " }}" data-placement="right"
+                  >{{ $team }}</span
+                >
+                <small>({{ len $members }})</small>
+              </th>
+              {{ range $j, $_ := (index $table.Points $i) }}
+                <td>
+                  {{ . }}
+                  {{ if eq (index $table.Reasons $j) "week of code" }}
+                    <div class="week-of-code-scores">
+                      {{ range $k, $p := (index $table.WeekOfCodeSolves $i) }}
+                        {{ $day := add $k 1 }}
+                        <span class="day" data-day="{{ $day }}">
+                          <span class="part {{ if ge $p 1 }}solved{{ end }}">
+                            Day {{ $day }} Part 1 solved.
+                          </span>
+                          <span class="part {{ if ge $p 2 }}solved{{ end }}">
+                            Day {{ $day }} Part 2 solved.
+                          </span>
+                        </span>
+                      {{ end }}
+                    </div>
+                  {{ end }}
+                </td>
+              {{ end }}
+            </tr>
+          {{ end }}
+        </tbody>
+      </table>
+    </section>
 
-    <footer>
+    <section>
       <h2>History</h2>
       <div id="points-chart"></div>
-      {{ $events := .TeamPointsEvents }}
       <script>
-        window.teamPointsEvents = JSON.parse({{ toJson $events }})
-        window.teams = JSON.parse({{ toJson .TeamPointsTable.Teams }})
+        window.teamPointsEvents = JSON.parse({{ toJson .Events }})
+        window.teams = JSON.parse({{ toJson .Table.Teams }})
         window.startedAt = Date.parse("{{ rfc3339 .StartedAt}}")
       </script>
       <noscript>
         <p class="error">You need JavaScript to see the chart.</p>
       </noscript>
-    </footer>
+    </section>
   </article>
 </main>
 

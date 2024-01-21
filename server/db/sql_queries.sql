@@ -20,6 +20,10 @@ SELECT COUNT(*) FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
 SELECT * FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
 	ORDER BY submitted_at ASC;
 
+-- name: ListAllCorrectSubmissions :many
+SELECT * FROM team_submit_attempts WHERE correct = TRUE
+	ORDER BY submitted_at ASC;
+
 -- name: CountIncorrectSubmissions :one
 SELECT COUNT(*) FROM team_submit_attempts WHERE team_name = ? AND problem_id = ? AND correct = FALSE;
 
@@ -31,6 +35,12 @@ SELECT submitted_at FROM team_submit_attempts
 
 -- name: AddPoints :one
 INSERT INTO team_points (team_name, points, reason) VALUES (?, ?, ?) RETURNING *;
+
+-- name: RemovePointsByReason :many
+DELETE FROM team_points WHERE team_name = ? AND reason = ? RETURNING *;
+
+-- name: RemovePointsByTime :one
+DELETE FROM team_points WHERE team_name = ? AND added_at = ? RETURNING *;
 
 -- name: TeamPoints :many
 SELECT
@@ -46,19 +56,22 @@ SELECT
 SELECT * FROM team_points ORDER BY added_at ASC;
 
 -- name: ListTeams :many
-SELECT * FROM teams;
+SELECT team_name, created_at, accepting_members FROM teams;
 
 -- name: ListTeamAndMembers :many
-SELECT * FROM team_members;
+SELECT * FROM team_members ORDER BY joined_at ASC;
 
 -- name: FindTeamWithInviteCode :one
-SELECT * FROM teams WHERE invite_code = ? AND accepting_members = TRUE;
+SELECT team_name, created_at, accepting_members FROM teams WHERE invite_code = ? AND accepting_members = TRUE;
 
 -- name: FindTeam :one
-SELECT * FROM teams WHERE team_name = ?;
+SELECT team_name, created_at, accepting_members FROM teams WHERE team_name = ?;
+
+-- name: TeamInviteCode :one
+SELECT invite_code FROM teams WHERE team_name = ?;
 
 -- name: ListTeamMembers :many
-SELECT * FROM team_members WHERE team_name = ?;
+SELECT * FROM team_members WHERE team_name = ? ORDER BY joined_at ASC;
 
 -- name: DropTeam :one
 DELETE FROM teams WHERE team_name = ? RETURNING *;
@@ -70,7 +83,7 @@ REPLACE INTO hackathon_submissions (team_name, project_url, project_description,
 UPDATE hackathon_submissions SET won_rank = ? WHERE team_name = ?;
 
 -- name: HackathonSubmissions :many
-SELECT * FROM hackathon_submissions;
+SELECT * FROM hackathon_submissions ORDER BY submitted_at ASC;
 
 -- name: HackathonSubmission :one
 SELECT * FROM hackathon_submissions WHERE team_name = ?;

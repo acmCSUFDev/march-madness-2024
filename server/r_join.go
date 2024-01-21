@@ -86,7 +86,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if data.Username == "" && isAuthenticated {
+	if isAuthenticated {
 		data.Username = u.Username
 	}
 
@@ -104,7 +104,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 				return fmt.Errorf("failed to check if leader: %w", err)
 			}
 			if isLeader {
-				return fmt.Errorf("cannot leave team as leader")
+				return fmt.Errorf("you cannot leave your own team")
 			}
 
 			_, err = q.LeaveTeam(ctx, db.LeaveTeamParams{
@@ -125,7 +125,6 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return fmt.Errorf("failed to join team: %w", err)
 			}
-			data.TeamName = team.TeamName
 			return nil
 		}
 

@@ -1,14 +1,11 @@
 package server
 
 import (
-	"context"
-	"log/slog"
 	"net/http"
 	"slices"
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"libdb.so/february-frenzy/server/db"
 	"libdb.so/february-frenzy/server/frontend"
 )
 
@@ -19,24 +16,51 @@ func (s *Server) routeLeaderboard(r chi.Router) {
 type leaderboardPageData struct {
 	frontend.ComponentContext
 	StartedAt time.Time
-
-	database *db.Database
-	logger   *slog.Logger
-	ctx      context.Context
+	Table     leaderboardTeamPointsTable
+	Events    []leaderboardTeamPointsEvent
 }
 
+// TODO: this is awful, refactor it maybe
 type leaderboardTeamPointsTable struct {
-	Reasons []string
-	Teams   []string
-	Points  [][]float64
+	Reasons          []string
+	Teams            []string
+	TeamMembers      [][]string
+	Points           [][]float64
+	WeekOfCodeSolves [][]int8 // list of teams, each containing N days
 }
 
-func (d leaderboardPageData) TeamPointsTable() (leaderboardTeamPointsTable, error) {
+type leaderboardTeamPointsEvent struct {
+	TeamName string    `json:"team_name"`
+	AddedAt  time.Time `json:"added_at"`
+	Reason   string    `json:"reason"`
+	Points   float64   `json:"points"`
+}
+
+func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
+	u := getAuthentication(r)
+	ctx := r.Context()
+
 	var table leaderboardTeamPointsTable
 
-	pointsRows, err := d.database.TeamPoints(d.ctx)
+	pointsRows, err := s.database.TeamPoints(ctx)
 	if err != nil {
-		return table, err
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	membersRows, err := s.database.ListTeamAndMembers(ctx)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+	membersForTeam := func(teamName string) []string {
+		var members []string
+		for _, row := range membersRows {
+			if row.TeamName == teamName {
+				members = append(members, row.Username)
+			}
+		}
+		return members
 	}
 
 	for _, row := range pointsRows {
@@ -44,9 +68,13 @@ func (d leaderboardPageData) TeamPointsTable() (leaderboardTeamPointsTable, erro
 		table.Teams = append(table.Teams, row.TeamName)
 	}
 
-	// table.Reasons = slices.Compact(table.Reasons)
 	table.Reasons = []string{"week of code", "hackathon"}
 	table.Teams = slices.Compact(table.Teams)
+
+	table.TeamMembers = make([][]string, len(table.Teams))
+	for i, teamName := range table.Teams {
+		table.TeamMembers[i] = membersForTeam(teamName)
+	}
 
 	table.Points = make([][]float64, len(table.Teams))
 	for i := range table.Points {
@@ -59,31 +87,43 @@ func (d leaderboardPageData) TeamPointsTable() (leaderboardTeamPointsTable, erro
 		if i != -1 && j != -1 {
 			table.Points[i][j] = row.Points.Float64
 		} else {
-			d.logger.WarnContext(d.ctx,
+			s.logger.WarnContext(ctx,
 				"leaderboard: unexpected team or reason",
 				"team", row.TeamName,
 				"reason", row.Reason)
 		}
 	}
 
-	return table, nil
-}
-
-type leaderboardTeamPointsEvent struct {
-	TeamName string    `json:"team_name"`
-	AddedAt  time.Time `json:"added_at"`
-	Reason   string    `json:"reason"`
-	Points   float64   `json:"points"`
-}
-
-func (d leaderboardPageData) TeamPointsEvents() ([]leaderboardTeamPointsEvent, error) {
-	var events []leaderboardTeamPointsEvent
-
-	rows, err := d.database.TeamPointsHistory(d.ctx)
+	weekOfCodeSolves, err := s.database.ListAllCorrectSubmissions(ctx)
 	if err != nil {
-		return events, err
+		writeError(w, http.StatusInternalServerError, err)
+		return
 	}
 
+	table.WeekOfCodeSolves = make([][]int8, len(table.Teams))
+	for i := range table.WeekOfCodeSolves {
+		table.WeekOfCodeSolves[i] = make([]int8, s.config.Problems.TotalProblems())
+	}
+	for _, row := range weekOfCodeSolves {
+		day, part2, ok := s.parseProblemID(row.ProblemID)
+		if ok {
+			// We assume that part 2 is always solved after part 1.
+			i := slices.Index(table.Teams, row.TeamName)
+			p := int8(1)
+			if part2 {
+				p = 2
+			}
+			table.WeekOfCodeSolves[i][day-1] = p
+		}
+	}
+
+	rows, err := s.database.TeamPointsHistory(ctx)
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	events := make([]leaderboardTeamPointsEvent, 0, len(rows))
 	for _, row := range rows {
 		events = append(events, leaderboardTeamPointsEvent{
 			TeamName: row.TeamName,
@@ -93,19 +133,13 @@ func (d leaderboardPageData) TeamPointsEvents() ([]leaderboardTeamPointsEvent, e
 		})
 	}
 
-	return events, nil
-}
-
-func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
-	u := getAuthentication(r)
 	s.renderTemplate(w, "leaderboard", leaderboardPageData{
 		ComponentContext: frontend.ComponentContext{
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
 		StartedAt: s.problems.StartedAt(),
-		database:  s.database,
-		logger:    s.logger,
-		ctx:       r.Context(),
+		Table:     table,
+		Events:    events,
 	})
 }

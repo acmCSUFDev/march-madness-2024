@@ -6,7 +6,7 @@
 <main class="container" id="problem_result">
   <article>
     <hgroup>
-      <h1>Day {{ .ID }}</h1>
+      <h1>Day {{ .Day }}</h1>
       <h2>Problem Submission</h2>
     </hgroup>
 
@@ -19,19 +19,19 @@
           </time>
         </strong>
         before you can submit another answer.
-        <a href="/problems/{{ .ID }}">Go back to the problem here</a>.
+        <a href="/problems/{{ .Day }}">Go back to the problem here</a>.
       </p>
     {{ else }}
       {{ if .Correct }}
         <p>
           Congratulations! Your answer is <strong>correct</strong>!
-          <a href="/problems/{{ .ID }}">Go back to the problem here</a>, or
+          <a href="/problems/{{ .Day }}">Go back to the problem here</a>, or
           <a href="/leaderboard">check out the leaderboard</a>.
         </p>
       {{ else }}
         <p>
           Sorry, your answer is <strong>incorrect</strong>.
-          <a href="/problems/{{ .ID }}">Go back to the problem here</a>.
+          <a href="/problems/{{ .Day }}">Go back to the problem here</a>.
         </p>
       {{ end }}
     {{ end }}

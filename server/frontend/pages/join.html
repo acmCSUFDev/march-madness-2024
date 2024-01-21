@@ -12,14 +12,16 @@
 
     {{ if .TeamName }}
       <p>
-        <strong>You are already on a team.</strong> You can change teams by
-        entering a new team code or creating a new team. You may also change
-        your display name.
+        <strong>
+          You are already on a team <mark data-tooltip="Team name">{{ .TeamName }}</mark> as
+          <mark data-tooltip="Username">{{ .Username }}</mark>.
+        </strong>
+        You can change teams by entering a new team code or creating a new team.
       </p>
     {{ else }}
       <p>
-        If you are creating a team, you will be the team leader. You will be
-        able to invite others to your team using the team code.
+        If you are creating a team, you will be the team leader. You will be able to invite others
+        to your team using the team code.
       </p>
     {{ end }}
     <p>
@@ -44,7 +46,9 @@
         title="Your name should be of length [2, 32] consisting of letters and spaces only!"
         value="{{ .FillingUsername }}"
         autocomplete="off"
-        required
+        {{ if .TeamName }}
+          disabled
+        {{ end }}
       />
 
       <input

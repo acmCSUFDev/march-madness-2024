@@ -1,19 +1,61 @@
 @use "variables" as *;
+@use "main" as *;
 
 #leaderboard {
   table {
-    th {
+    thead th {
       font-weight: bold;
+    }
+
+    tbody th {
+      width: max-content;
+    }
+
+    th,
+    td {
+      padding-top: calc(var(--spacing) * 0.75);
+      padding-bottom: calc(var(--spacing) * 0.75);
     }
 
     td {
       font-family: $code-font-family;
       font-weight: $code-font-weight;
       font-size: 1.15em;
+      @include highlight-glow;
     }
 
-    tbody th {
-      width: 50%;
+    .week-of-code-scores {
+      position: relative;
+      font-size: 0;
+
+      height: 0;
+      overflow: visible;
+
+      display: flex;
+      gap: 2px;
+
+      .day {
+        flex: 1;
+        min-width: 5px;
+        max-width: 20px;
+        margin-top: -2px;
+
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        height: 8px;
+
+        .part {
+          height: 2px;
+          border-radius: 5px;
+          background-color: var(--muted-color);
+
+          &.solved {
+            background-color: var(--primary);
+            box-shadow: 0 0 4px var(--glow-color-primary);
+          }
+        }
+      }
     }
   }
 

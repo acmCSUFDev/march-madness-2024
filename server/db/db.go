@@ -66,6 +66,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.leaveTeamStmt, err = db.PrepareContext(ctx, leaveTeam); err != nil {
 		return nil, fmt.Errorf("error preparing query LeaveTeam: %w", err)
 	}
+	if q.listAllCorrectSubmissionsStmt, err = db.PrepareContext(ctx, listAllCorrectSubmissions); err != nil {
+		return nil, fmt.Errorf("error preparing query ListAllCorrectSubmissions: %w", err)
+	}
 	if q.listSubmissionsStmt, err = db.PrepareContext(ctx, listSubmissions); err != nil {
 		return nil, fmt.Errorf("error preparing query ListSubmissions: %w", err)
 	}
@@ -81,11 +84,20 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.recordSubmissionStmt, err = db.PrepareContext(ctx, recordSubmission); err != nil {
 		return nil, fmt.Errorf("error preparing query RecordSubmission: %w", err)
 	}
+	if q.removePointsByReasonStmt, err = db.PrepareContext(ctx, removePointsByReason); err != nil {
+		return nil, fmt.Errorf("error preparing query RemovePointsByReason: %w", err)
+	}
+	if q.removePointsByTimeStmt, err = db.PrepareContext(ctx, removePointsByTime); err != nil {
+		return nil, fmt.Errorf("error preparing query RemovePointsByTime: %w", err)
+	}
 	if q.setHackathonSubmissionStmt, err = db.PrepareContext(ctx, setHackathonSubmission); err != nil {
 		return nil, fmt.Errorf("error preparing query SetHackathonSubmission: %w", err)
 	}
 	if q.setHackathonWinnerStmt, err = db.PrepareContext(ctx, setHackathonWinner); err != nil {
 		return nil, fmt.Errorf("error preparing query SetHackathonWinner: %w", err)
+	}
+	if q.teamInviteCodeStmt, err = db.PrepareContext(ctx, teamInviteCode); err != nil {
+		return nil, fmt.Errorf("error preparing query TeamInviteCode: %w", err)
 	}
 	if q.teamPointsStmt, err = db.PrepareContext(ctx, teamPoints); err != nil {
 		return nil, fmt.Errorf("error preparing query TeamPoints: %w", err)
@@ -168,6 +180,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing leaveTeamStmt: %w", cerr)
 		}
 	}
+	if q.listAllCorrectSubmissionsStmt != nil {
+		if cerr := q.listAllCorrectSubmissionsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listAllCorrectSubmissionsStmt: %w", cerr)
+		}
+	}
 	if q.listSubmissionsStmt != nil {
 		if cerr := q.listSubmissionsStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing listSubmissionsStmt: %w", cerr)
@@ -193,6 +210,16 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing recordSubmissionStmt: %w", cerr)
 		}
 	}
+	if q.removePointsByReasonStmt != nil {
+		if cerr := q.removePointsByReasonStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing removePointsByReasonStmt: %w", cerr)
+		}
+	}
+	if q.removePointsByTimeStmt != nil {
+		if cerr := q.removePointsByTimeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing removePointsByTimeStmt: %w", cerr)
+		}
+	}
 	if q.setHackathonSubmissionStmt != nil {
 		if cerr := q.setHackathonSubmissionStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing setHackathonSubmissionStmt: %w", cerr)
@@ -201,6 +228,11 @@ func (q *Queries) Close() error {
 	if q.setHackathonWinnerStmt != nil {
 		if cerr := q.setHackathonWinnerStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing setHackathonWinnerStmt: %w", cerr)
+		}
+	}
+	if q.teamInviteCodeStmt != nil {
+		if cerr := q.teamInviteCodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing teamInviteCodeStmt: %w", cerr)
 		}
 	}
 	if q.teamPointsStmt != nil {
@@ -266,13 +298,17 @@ type Queries struct {
 	joinTeamStmt                  *sql.Stmt
 	lastSubmissionTimeStmt        *sql.Stmt
 	leaveTeamStmt                 *sql.Stmt
+	listAllCorrectSubmissionsStmt *sql.Stmt
 	listSubmissionsStmt           *sql.Stmt
 	listTeamAndMembersStmt        *sql.Stmt
 	listTeamMembersStmt           *sql.Stmt
 	listTeamsStmt                 *sql.Stmt
 	recordSubmissionStmt          *sql.Stmt
+	removePointsByReasonStmt      *sql.Stmt
+	removePointsByTimeStmt        *sql.Stmt
 	setHackathonSubmissionStmt    *sql.Stmt
 	setHackathonWinnerStmt        *sql.Stmt
+	teamInviteCodeStmt            *sql.Stmt
 	teamPointsStmt                *sql.Stmt
 	teamPointsHistoryStmt         *sql.Stmt
 }
@@ -295,13 +331,17 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		joinTeamStmt:                  q.joinTeamStmt,
 		lastSubmissionTimeStmt:        q.lastSubmissionTimeStmt,
 		leaveTeamStmt:                 q.leaveTeamStmt,
+		listAllCorrectSubmissionsStmt: q.listAllCorrectSubmissionsStmt,
 		listSubmissionsStmt:           q.listSubmissionsStmt,
 		listTeamAndMembersStmt:        q.listTeamAndMembersStmt,
 		listTeamMembersStmt:           q.listTeamMembersStmt,
 		listTeamsStmt:                 q.listTeamsStmt,
 		recordSubmissionStmt:          q.recordSubmissionStmt,
+		removePointsByReasonStmt:      q.removePointsByReasonStmt,
+		removePointsByTimeStmt:        q.removePointsByTimeStmt,
 		setHackathonSubmissionStmt:    q.setHackathonSubmissionStmt,
 		setHackathonWinnerStmt:        q.setHackathonWinnerStmt,
+		teamInviteCodeStmt:            q.teamInviteCodeStmt,
 		teamPointsStmt:                q.teamPointsStmt,
 		teamPointsHistoryStmt:         q.teamPointsHistoryStmt,
 	}

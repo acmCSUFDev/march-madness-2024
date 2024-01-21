@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -107,7 +108,7 @@ func (s *Server) viewProblemInput(w http.ResponseWriter, r *http.Request) {
 
 type problemResultPageData struct {
 	frontend.ComponentContext
-	ID           int
+	Day          int
 	Cooldown     time.Duration
 	CooldownTime time.Time
 	Correct      bool
@@ -117,7 +118,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 	u := getAuthentication(r)
 	ctx := r.Context()
 
-	p, id, err := s.getProblemFromRequest(r)
+	p, day, err := s.getProblemFromRequest(r)
 	if err != nil {
 		writeError(w, http.StatusNotFound, err)
 		return
@@ -137,7 +138,9 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	problemID := s.config.ProblemIDs[id] + fmt.Sprintf("/part%d", data.Part)
+	problemID := fmt.Sprintf(
+		"%s/part%d",
+		s.config.ProblemIDs[day-1], data.Part)
 
 	var numSolves int64
 	var numAttempts int64
@@ -236,7 +239,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
-		ID:           id,
+		Day:          day,
 		Correct:      correct,
 		Cooldown:     cooldown,
 		CooldownTime: cooldownTime,
@@ -244,15 +247,47 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) getProblemFromRequest(r *http.Request) (*problem.Problem, int, error) {
-	id, err := strconv.Atoi(chi.URLParam(r, "problemID"))
+	day, err := strconv.Atoi(chi.URLParam(r, "problemID"))
 	if err != nil {
 		return nil, 0, err
 	}
 
-	p := s.problems.Problem(id - 1)
+	p := s.problems.Problem(day - 1)
 	if p == nil {
-		return nil, 0, fmt.Errorf("problem %d not found", id)
+		return nil, 0, fmt.Errorf("problem %d not found", day)
 	}
 
-	return p, id, nil
+	return p, day, nil
+}
+
+func (s *Server) problemID(problem int, part2 bool) string {
+	id := s.config.ProblemIDs[problem]
+	var p string
+	if part2 {
+		p = "/part2"
+	} else {
+		p = "/part1"
+	}
+	return id + p
+}
+
+func (s *Server) parseProblemID(id string) (day int, part2 bool, ok bool) {
+	switch {
+	case strings.HasSuffix(id, "/part1"):
+		part2 = false
+		id = strings.TrimSuffix(id, "/part1")
+	case strings.HasSuffix(id, "/part2"):
+		part2 = true
+		id = strings.TrimSuffix(id, "/part2")
+	default:
+		return
+	}
+	for i, problemID := range s.config.ProblemIDs {
+		if problemID == id {
+			day = i + 1
+			ok = true
+			return
+		}
+	}
+	return
 }

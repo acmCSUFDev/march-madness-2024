@@ -118,12 +118,12 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 
 	var inviteCode string
 	if u.TeamName != "" {
-		team, err := s.database.FindTeam(r.Context(), u.TeamName)
+		code, err := s.database.TeamInviteCode(r.Context(), u.TeamName)
 		if err != nil {
 			writeError(w, http.StatusUnauthorized, err)
 			return
 		}
-		inviteCode = team.InviteCode
+		inviteCode = code
 	}
 
 	s.renderTemplate(w, "index", indexPageData{
