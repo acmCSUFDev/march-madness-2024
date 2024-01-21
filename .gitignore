@@ -1,5 +1,5 @@
 __pycache__
-server/frontend/node_modules
+node_modules
 server/frontend/static/styles.css
 server/frontend/static/styles.css.map
 .venv

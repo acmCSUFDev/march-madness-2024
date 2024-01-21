@@ -13,11 +13,8 @@ import (
 	"libdb.so/tmplutil"
 )
 
-// Initialize node_modules.
-//go:generate npm i --silent --package-lock-only --no-audit --no-fund
-
 // Handle generating CSS from SCSS files.
-//go:generate sass -I node_modules/@picocss/pico/scss -s compressed ./styles/styles.scss ./static/styles.css
+//go:generate sass -I ./styles/pico/scss -s compressed ./styles/styles.scss ./static/styles.css
 
 // ComponentContext is the context passed to all components.
 type ComponentContext struct {

@@ -19,10 +19,6 @@
 
 					nodejs
 					dart-sass
-					(writeShellScriptBin "prettier" ''
-						cd $(git rev-parse --show-toplevel)/server/frontend
-						exec node_modules/.bin/prettier "$@"
-					'')
 
 					python3
 					python3Packages.black
@@ -32,6 +28,7 @@
 				shellHook = ''
 					python3 -m venv .venv
 					source .venv/bin/activate
+					export PATH="$PATH:$(git rev-parse --show-toplevel)/node_modules/.bin"
 				'';
 			};
 		}
