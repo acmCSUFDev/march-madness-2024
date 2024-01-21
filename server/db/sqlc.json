@@ -7,8 +7,12 @@
       "schema": "sql_schema.sql",
       "gen": {
         "go": {
+          "emit_prepared_queries": true,
           "package": "db",
-          "out": "."
+          "out": ".",
+          "rename": {
+            "user_name": "Username"
+          }
         }
       }
     }

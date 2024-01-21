@@ -9,6 +9,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gorilla/schema"
+	"libdb.so/february-frenzy/internal/config"
 	"libdb.so/february-frenzy/server/db"
 	"libdb.so/february-frenzy/server/frontend"
 	"libdb.so/february-frenzy/server/problem"
@@ -26,16 +28,14 @@ type Server struct {
 }
 
 type ServerConfig struct {
-	FrontendDir             fs.FS
-	SecretKey               SecretKey
-	ProblemIDs              []string
-	Problems                *problem.ProblemSet
-	Database                *db.Database
-	Logger                  *slog.Logger
-	HackathonStart          time.Time
-	HackathonDuration       time.Duration
-	HackathonSubmissionLink string
-	OpenRegistrationTime    time.Time
+	FrontendDir          fs.FS
+	SecretKey            SecretKey
+	ProblemIDs           []string
+	Problems             *problem.ProblemSet
+	Database             *db.Database
+	Logger               *slog.Logger
+	HackathonConfig      config.HackathonConfig
+	OpenRegistrationTime time.Time
 }
 
 // New creates a new server.
@@ -143,4 +143,13 @@ func parseForm(next http.Handler) http.Handler {
 		}
 		next.ServeHTTP(w, r)
 	})
+}
+
+var decoder = schema.NewDecoder()
+
+func unmarshalForm(r *http.Request, dst any) error {
+	if err := r.ParseForm(); err != nil {
+		return err
+	}
+	return decoder.Decode(dst, r.Form)
 }

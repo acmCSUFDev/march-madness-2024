@@ -9,6 +9,15 @@ import (
 	"time"
 )
 
+type HackathonSubmission struct {
+	TeamName           string
+	SubmittedAt        time.Time
+	ProjectUrl         string
+	ProjectDescription sql.NullString
+	Category           string
+	WonRank            sql.NullInt64
+}
+
 type Team struct {
 	TeamName         string
 	CreatedAt        time.Time
@@ -18,7 +27,7 @@ type Team struct {
 
 type TeamMember struct {
 	TeamName string
-	UserName string
+	Username string
 	JoinedAt time.Time
 	IsLeader bool
 }

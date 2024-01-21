@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/httplog/v2"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/pflag"
+	"libdb.so/february-frenzy/internal/config"
 	"libdb.so/february-frenzy/server"
 	"libdb.so/february-frenzy/server/db"
 	"libdb.so/february-frenzy/server/problem"
@@ -49,7 +50,7 @@ func run(ctx context.Context) error {
 	logger := slog.New(logOutput)
 	slog.SetDefault(logger)
 
-	config, err := parseConfig(configPath)
+	config, err := config.ParseFile(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
@@ -95,16 +96,14 @@ func run(ctx context.Context) error {
 	})
 
 	server := server.New(server.ServerConfig{
-		FrontendDir:             frontendDir,
-		SecretKey:               secretKey,
-		ProblemIDs:              config.Problems.Paths,
-		Problems:                problemset,
-		Database:                database,
-		Logger:                  logger.With("component", "http"),
-		HackathonStart:          config.Hackathon.StartTime,
-		HackathonDuration:       config.Hackathon.Duration.Duration(),
-		HackathonSubmissionLink: config.Hackathon.SubmissionLink,
-		OpenRegistrationTime:    config.OpenRegistrationTime,
+		FrontendDir:          frontendDir,
+		SecretKey:            secretKey,
+		ProblemIDs:           config.Problems.Paths,
+		Problems:             problemset,
+		Database:             database,
+		Logger:               logger.With("component", "http"),
+		HackathonConfig:      config.Hackathon,
+		OpenRegistrationTime: config.OpenRegistrationTime,
 	})
 
 	handler := http.Handler(server)

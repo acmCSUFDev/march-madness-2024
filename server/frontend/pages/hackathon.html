@@ -56,37 +56,97 @@
     </section>
 
     <section>
-      {{ $begun := and (.StartTime.Before now) (.EndTime.After now) }}
-      {{ if $begun }}
+      {{ if .IsOpen now }}
         <p class="countdown">
           <strong>Submissions are open for</strong>
           <time class="countdown-clock" datetime="{{ rfc3339 .EndTime }}">
             {{ .EndTime.Sub now | formatDuration }}
           </time>
         </p>
+
+        <form id="submit-form" action="/hackathon/submit" method="post">
+          <label>
+            GitHub Repo:
+            <input type="text" name="project_url" value="{{ .Submission.ProjectURL }}" required />
+          </label>
+          <label>
+            Project Description <small>(optional)</small>:
+            <textarea name="project_description">{{ .Submission.ProjectDescription }}</textarea>
+          </label>
+          <label>
+            Category:
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="interactive"
+                {{ if eq .Submission.Category "interactive" }}
+                  checked
+                {{ end }}
+              />
+              Interactive
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="lazy"
+                {{ if eq .Submission.Category "lazy" }}
+                  checked
+                {{ end }}
+              />
+              For the lazy
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="otherworldly"
+                {{ if eq .Submission.Category "otherworldly" }}
+                  checked
+                {{ end }}
+              />
+              Otherworldly
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="category"
+                value="non-ai"
+                {{ if eq .Submission.Category "non-ai" }}
+                  checked
+                {{ end }}
+              />
+              Non-AI
+            </label>
+          </label>
+          <div class="grid" style="margin-top: var(--spacing)">
+            <button
+              type="submit"
+              {{ if .Submission.ProjectURL }}
+                class="secondary"
+              {{ end }}
+            >
+              {{ if .Submission.ProjectURL }}
+                Re-submit
+              {{ else }}
+                Submit
+              {{ end }}
+            </button>
+          </div>
+        </form>
+      {{ else }}
+        <div class="grid">
+          <button disabled class="outline">
+            {{ if .StartTime.After now }}
+              Submissions will be available once the event begins.
+            {{ end }}
+            {{ if .EndTime.Before now }}
+              Submissions are closed.
+            {{ end }}
+          </button>
+        </div>
       {{ end }}
-
-
-      <div class="grid">
-        <a
-          role="button"
-          {{ if $begun }}
-            href="{{ .SubmissionLink }}" target="_blank"
-          {{ else }}
-            disabled class="outline"
-          {{ end }}
-        >
-          {{ if $begun }}
-            Submit your project!
-          {{ end }}
-          {{ if .StartTime.After now }}
-            Submissions will be available once the event begins.
-          {{ end }}
-          {{ if .EndTime.Before now }}
-            Submissions are closed.
-          {{ end }}
-        </a>
-      </div>
     </section>
   </article>
 </main>

@@ -7,6 +7,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"fmt"
 )
 
 type DBTX interface {
@@ -20,12 +21,288 @@ func New(db DBTX) *Queries {
 	return &Queries{db: db}
 }
 
+func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
+	q := Queries{db: db}
+	var err error
+	if q.addPointsStmt, err = db.PrepareContext(ctx, addPoints); err != nil {
+		return nil, fmt.Errorf("error preparing query AddPoints: %w", err)
+	}
+	if q.countIncorrectSubmissionsStmt, err = db.PrepareContext(ctx, countIncorrectSubmissions); err != nil {
+		return nil, fmt.Errorf("error preparing query CountIncorrectSubmissions: %w", err)
+	}
+	if q.createTeamStmt, err = db.PrepareContext(ctx, createTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateTeam: %w", err)
+	}
+	if q.dropTeamStmt, err = db.PrepareContext(ctx, dropTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query DropTeam: %w", err)
+	}
+	if q.findTeamStmt, err = db.PrepareContext(ctx, findTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query FindTeam: %w", err)
+	}
+	if q.findTeamWithInviteCodeStmt, err = db.PrepareContext(ctx, findTeamWithInviteCode); err != nil {
+		return nil, fmt.Errorf("error preparing query FindTeamWithInviteCode: %w", err)
+	}
+	if q.hackathonSubmissionStmt, err = db.PrepareContext(ctx, hackathonSubmission); err != nil {
+		return nil, fmt.Errorf("error preparing query HackathonSubmission: %w", err)
+	}
+	if q.hackathonSubmissionsStmt, err = db.PrepareContext(ctx, hackathonSubmissions); err != nil {
+		return nil, fmt.Errorf("error preparing query HackathonSubmissions: %w", err)
+	}
+	if q.hackathonWinnersStmt, err = db.PrepareContext(ctx, hackathonWinners); err != nil {
+		return nil, fmt.Errorf("error preparing query HackathonWinners: %w", err)
+	}
+	if q.hasSolvedStmt, err = db.PrepareContext(ctx, hasSolved); err != nil {
+		return nil, fmt.Errorf("error preparing query HasSolved: %w", err)
+	}
+	if q.isLeaderStmt, err = db.PrepareContext(ctx, isLeader); err != nil {
+		return nil, fmt.Errorf("error preparing query IsLeader: %w", err)
+	}
+	if q.joinTeamStmt, err = db.PrepareContext(ctx, joinTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query JoinTeam: %w", err)
+	}
+	if q.lastSubmissionTimeStmt, err = db.PrepareContext(ctx, lastSubmissionTime); err != nil {
+		return nil, fmt.Errorf("error preparing query LastSubmissionTime: %w", err)
+	}
+	if q.leaveTeamStmt, err = db.PrepareContext(ctx, leaveTeam); err != nil {
+		return nil, fmt.Errorf("error preparing query LeaveTeam: %w", err)
+	}
+	if q.listSubmissionsStmt, err = db.PrepareContext(ctx, listSubmissions); err != nil {
+		return nil, fmt.Errorf("error preparing query ListSubmissions: %w", err)
+	}
+	if q.listTeamAndMembersStmt, err = db.PrepareContext(ctx, listTeamAndMembers); err != nil {
+		return nil, fmt.Errorf("error preparing query ListTeamAndMembers: %w", err)
+	}
+	if q.listTeamMembersStmt, err = db.PrepareContext(ctx, listTeamMembers); err != nil {
+		return nil, fmt.Errorf("error preparing query ListTeamMembers: %w", err)
+	}
+	if q.listTeamsStmt, err = db.PrepareContext(ctx, listTeams); err != nil {
+		return nil, fmt.Errorf("error preparing query ListTeams: %w", err)
+	}
+	if q.recordSubmissionStmt, err = db.PrepareContext(ctx, recordSubmission); err != nil {
+		return nil, fmt.Errorf("error preparing query RecordSubmission: %w", err)
+	}
+	if q.setHackathonSubmissionStmt, err = db.PrepareContext(ctx, setHackathonSubmission); err != nil {
+		return nil, fmt.Errorf("error preparing query SetHackathonSubmission: %w", err)
+	}
+	if q.setHackathonWinnerStmt, err = db.PrepareContext(ctx, setHackathonWinner); err != nil {
+		return nil, fmt.Errorf("error preparing query SetHackathonWinner: %w", err)
+	}
+	if q.teamPointsStmt, err = db.PrepareContext(ctx, teamPoints); err != nil {
+		return nil, fmt.Errorf("error preparing query TeamPoints: %w", err)
+	}
+	if q.teamPointsHistoryStmt, err = db.PrepareContext(ctx, teamPointsHistory); err != nil {
+		return nil, fmt.Errorf("error preparing query TeamPointsHistory: %w", err)
+	}
+	return &q, nil
+}
+
+func (q *Queries) Close() error {
+	var err error
+	if q.addPointsStmt != nil {
+		if cerr := q.addPointsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing addPointsStmt: %w", cerr)
+		}
+	}
+	if q.countIncorrectSubmissionsStmt != nil {
+		if cerr := q.countIncorrectSubmissionsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing countIncorrectSubmissionsStmt: %w", cerr)
+		}
+	}
+	if q.createTeamStmt != nil {
+		if cerr := q.createTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createTeamStmt: %w", cerr)
+		}
+	}
+	if q.dropTeamStmt != nil {
+		if cerr := q.dropTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing dropTeamStmt: %w", cerr)
+		}
+	}
+	if q.findTeamStmt != nil {
+		if cerr := q.findTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findTeamStmt: %w", cerr)
+		}
+	}
+	if q.findTeamWithInviteCodeStmt != nil {
+		if cerr := q.findTeamWithInviteCodeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing findTeamWithInviteCodeStmt: %w", cerr)
+		}
+	}
+	if q.hackathonSubmissionStmt != nil {
+		if cerr := q.hackathonSubmissionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing hackathonSubmissionStmt: %w", cerr)
+		}
+	}
+	if q.hackathonSubmissionsStmt != nil {
+		if cerr := q.hackathonSubmissionsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing hackathonSubmissionsStmt: %w", cerr)
+		}
+	}
+	if q.hackathonWinnersStmt != nil {
+		if cerr := q.hackathonWinnersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing hackathonWinnersStmt: %w", cerr)
+		}
+	}
+	if q.hasSolvedStmt != nil {
+		if cerr := q.hasSolvedStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing hasSolvedStmt: %w", cerr)
+		}
+	}
+	if q.isLeaderStmt != nil {
+		if cerr := q.isLeaderStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing isLeaderStmt: %w", cerr)
+		}
+	}
+	if q.joinTeamStmt != nil {
+		if cerr := q.joinTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing joinTeamStmt: %w", cerr)
+		}
+	}
+	if q.lastSubmissionTimeStmt != nil {
+		if cerr := q.lastSubmissionTimeStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing lastSubmissionTimeStmt: %w", cerr)
+		}
+	}
+	if q.leaveTeamStmt != nil {
+		if cerr := q.leaveTeamStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing leaveTeamStmt: %w", cerr)
+		}
+	}
+	if q.listSubmissionsStmt != nil {
+		if cerr := q.listSubmissionsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listSubmissionsStmt: %w", cerr)
+		}
+	}
+	if q.listTeamAndMembersStmt != nil {
+		if cerr := q.listTeamAndMembersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listTeamAndMembersStmt: %w", cerr)
+		}
+	}
+	if q.listTeamMembersStmt != nil {
+		if cerr := q.listTeamMembersStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listTeamMembersStmt: %w", cerr)
+		}
+	}
+	if q.listTeamsStmt != nil {
+		if cerr := q.listTeamsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing listTeamsStmt: %w", cerr)
+		}
+	}
+	if q.recordSubmissionStmt != nil {
+		if cerr := q.recordSubmissionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing recordSubmissionStmt: %w", cerr)
+		}
+	}
+	if q.setHackathonSubmissionStmt != nil {
+		if cerr := q.setHackathonSubmissionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing setHackathonSubmissionStmt: %w", cerr)
+		}
+	}
+	if q.setHackathonWinnerStmt != nil {
+		if cerr := q.setHackathonWinnerStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing setHackathonWinnerStmt: %w", cerr)
+		}
+	}
+	if q.teamPointsStmt != nil {
+		if cerr := q.teamPointsStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing teamPointsStmt: %w", cerr)
+		}
+	}
+	if q.teamPointsHistoryStmt != nil {
+		if cerr := q.teamPointsHistoryStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing teamPointsHistoryStmt: %w", cerr)
+		}
+	}
+	return err
+}
+
+func (q *Queries) exec(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (sql.Result, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).ExecContext(ctx, args...)
+	case stmt != nil:
+		return stmt.ExecContext(ctx, args...)
+	default:
+		return q.db.ExecContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) query(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) (*sql.Rows, error) {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryContext(ctx, args...)
+	default:
+		return q.db.QueryContext(ctx, query, args...)
+	}
+}
+
+func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, args ...interface{}) *sql.Row {
+	switch {
+	case stmt != nil && q.tx != nil:
+		return q.tx.StmtContext(ctx, stmt).QueryRowContext(ctx, args...)
+	case stmt != nil:
+		return stmt.QueryRowContext(ctx, args...)
+	default:
+		return q.db.QueryRowContext(ctx, query, args...)
+	}
+}
+
 type Queries struct {
-	db DBTX
+	db                            DBTX
+	tx                            *sql.Tx
+	addPointsStmt                 *sql.Stmt
+	countIncorrectSubmissionsStmt *sql.Stmt
+	createTeamStmt                *sql.Stmt
+	dropTeamStmt                  *sql.Stmt
+	findTeamStmt                  *sql.Stmt
+	findTeamWithInviteCodeStmt    *sql.Stmt
+	hackathonSubmissionStmt       *sql.Stmt
+	hackathonSubmissionsStmt      *sql.Stmt
+	hackathonWinnersStmt          *sql.Stmt
+	hasSolvedStmt                 *sql.Stmt
+	isLeaderStmt                  *sql.Stmt
+	joinTeamStmt                  *sql.Stmt
+	lastSubmissionTimeStmt        *sql.Stmt
+	leaveTeamStmt                 *sql.Stmt
+	listSubmissionsStmt           *sql.Stmt
+	listTeamAndMembersStmt        *sql.Stmt
+	listTeamMembersStmt           *sql.Stmt
+	listTeamsStmt                 *sql.Stmt
+	recordSubmissionStmt          *sql.Stmt
+	setHackathonSubmissionStmt    *sql.Stmt
+	setHackathonWinnerStmt        *sql.Stmt
+	teamPointsStmt                *sql.Stmt
+	teamPointsHistoryStmt         *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db: tx,
+		db:                            tx,
+		tx:                            tx,
+		addPointsStmt:                 q.addPointsStmt,
+		countIncorrectSubmissionsStmt: q.countIncorrectSubmissionsStmt,
+		createTeamStmt:                q.createTeamStmt,
+		dropTeamStmt:                  q.dropTeamStmt,
+		findTeamStmt:                  q.findTeamStmt,
+		findTeamWithInviteCodeStmt:    q.findTeamWithInviteCodeStmt,
+		hackathonSubmissionStmt:       q.hackathonSubmissionStmt,
+		hackathonSubmissionsStmt:      q.hackathonSubmissionsStmt,
+		hackathonWinnersStmt:          q.hackathonWinnersStmt,
+		hasSolvedStmt:                 q.hasSolvedStmt,
+		isLeaderStmt:                  q.isLeaderStmt,
+		joinTeamStmt:                  q.joinTeamStmt,
+		lastSubmissionTimeStmt:        q.lastSubmissionTimeStmt,
+		leaveTeamStmt:                 q.leaveTeamStmt,
+		listSubmissionsStmt:           q.listSubmissionsStmt,
+		listTeamAndMembersStmt:        q.listTeamAndMembersStmt,
+		listTeamMembersStmt:           q.listTeamMembersStmt,
+		listTeamsStmt:                 q.listTeamsStmt,
+		recordSubmissionStmt:          q.recordSubmissionStmt,
+		setHackathonSubmissionStmt:    q.setHackathonSubmissionStmt,
+		setHackathonWinnerStmt:        q.setHackathonWinnerStmt,
+		teamPointsStmt:                q.teamPointsStmt,
+		teamPointsHistoryStmt:         q.teamPointsHistoryStmt,
 	}
 }

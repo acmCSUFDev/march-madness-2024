@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/gorilla/schema"
 	"libdb.so/february-frenzy/server/db"
 	"libdb.so/february-frenzy/server/frontend"
 )
@@ -37,8 +36,6 @@ func (s *Server) joinPage(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-var decoder = schema.NewDecoder()
-
 var (
 	reUsername = regexp.MustCompile(`^[a-zA-Z0-9-_ ]{2,32}$`)
 	reTeamName = regexp.MustCompile(`^[a-zA-Z0-9-_ ]{2,32}$`)
@@ -67,7 +64,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 		Username string `schema:"username"`
 		TeamName string `schema:"team_name"`
 	}
-	if err := decoder.Decode(&data, r.PostForm); err != nil {
+	if err := unmarshalForm(r, &data); err != nil {
 		writeError(err)
 		return
 	}
@@ -101,7 +98,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 		if isAuthenticated {
 			isLeader, err := q.IsLeader(ctx, db.IsLeaderParams{
 				TeamName: u.TeamName,
-				UserName: u.Username,
+				Username: u.Username,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to check if leader: %w", err)
@@ -112,7 +109,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 
 			_, err = q.LeaveTeam(ctx, db.LeaveTeamParams{
 				TeamName: u.TeamName,
-				UserName: u.Username,
+				Username: u.Username,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to leave team: %w", err)
@@ -123,7 +120,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 		if err == nil {
 			_, err := q.JoinTeam(ctx, db.JoinTeamParams{
 				TeamName: team.TeamName,
-				UserName: data.Username,
+				Username: data.Username,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to join team: %w", err)
@@ -142,7 +139,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 
 		_, err = q.JoinTeam(ctx, db.JoinTeamParams{
 			TeamName: data.TeamName,
-			UserName: data.Username,
+			Username: data.Username,
 			IsLeader: true,
 		})
 		if err != nil {

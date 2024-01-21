@@ -16,7 +16,6 @@ require (
 	github.com/spf13/pflag v1.0.3
 	github.com/yuin/goldmark v1.4.13
 	libdb.so/ctxt v0.0.0-20240118132135-5a5840831d74
-	libdb.so/etagcache v0.0.0-20240119053604-b0ff0cad1e13
 	libdb.so/hserve v0.0.0-20230404043009-95e112a6e0a5
 	libdb.so/lazymigrate v0.0.0-20240118091250-725619470291
 	libdb.so/tmplutil v0.0.0-20240119024100-a34002ec5e6a

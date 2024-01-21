@@ -15,34 +15,38 @@
       <mark>1337</mark> score bonus for your team!
     </p>
 
-    <ul class="problems">
-      {{ $available := .Problems.AvailableProblems }}
-      {{ range $i := until .Problems.TotalProblems }}
-        {{ $id := add $i 1 }}
-        {{ $problem := $.Problems.Problem $i }}
-        {{ if $problem }}
-          <li>
-            <a role="button" href="./problems/{{ $id }}">
-              Problem {{ $id }}:
-              {{ $problem.Title }}
-            </a>
-          </li>
-        {{ else }}
-          <li class="not-available">
-            <a role="button" data-problem="{{ $id }}">
-              Problem
-              {{ $id }}
-              {{- if eq $i $available -}}
-                {{ $nextRelease := $.Problems.NextReleaseTime }}
-                <time datetime="{{ $nextRelease | rfc3339 }}" class="countdown">
-                  {{- $nextRelease | date "01/02/2006" -}}
-                </time>
-              {{ end }}
-            </a>
-          </li>
+    {{ if not (eq .Problems.TotalProblems 0) }}
+      <ul class="problems">
+        {{ $available := .Problems.AvailableProblems }}
+        {{ range $i := until .Problems.TotalProblems }}
+          {{ $id := add $i 1 }}
+          {{ $problem := $.Problems.Problem $i }}
+          {{ if $problem }}
+            <li>
+              <a role="button" href="./problems/{{ $id }}">
+                Problem {{ $id }}:
+                {{ $problem.Title }}
+              </a>
+            </li>
+          {{ else }}
+            <li class="not-available">
+              <a role="button" data-problem="{{ $id }}">
+                Problem
+                {{ $id }}
+                {{- if eq $i $available -}}
+                  {{ $nextRelease := $.Problems.NextReleaseTime }}
+                  <time datetime="{{ $nextRelease | rfc3339 }}" class="countdown">
+                    {{- $nextRelease | date "01/02/2006" -}}
+                  </time>
+                {{ end }}
+              </a>
+            </li>
+          {{ end }}
         {{ end }}
-      {{ end }}
-    </ul>
+      </ul>
+    {{ else }}
+      <p>We haven't released any problems yet. Check back later!</p>
+    {{ end }}
   </article>
 </main>
 

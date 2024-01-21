@@ -53,3 +53,15 @@ CREATE INDEX team_points_team_name_idx ON team_points (team_name);
 -- team_submit_attempts.
 ALTER TABLE team_submit_attempts ADD COLUMN
 	submitted_by TEXT REFERENCES team_members (user_name);
+
+--------------------------------- NEW VERSION ---------------------------------
+
+-- Add a table tracking Hackathon submissions.
+CREATE TABLE hackathon_submissions (
+	team_name TEXT NOT NULL PRIMARY KEY,
+	submitted_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+	project_url TEXT NOT NULL,
+	project_description TEXT,
+	category TEXT NOT NULL,
+	won_rank INTEGER DEFAULT NULL UNIQUE CHECK (won_rank IS NULL OR (won_rank > 0 AND won_rank <= 3)),
+	FOREIGN KEY (team_name) REFERENCES teams (team_name));

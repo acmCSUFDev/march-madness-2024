@@ -56,3 +56,24 @@ SELECT * FROM teams WHERE invite_code = ? AND accepting_members = TRUE;
 
 -- name: FindTeam :one
 SELECT * FROM teams WHERE team_name = ?;
+
+-- name: ListTeamMembers :many
+SELECT * FROM team_members WHERE team_name = ?;
+
+-- name: DropTeam :one
+DELETE FROM teams WHERE team_name = ? RETURNING *;
+
+-- name: SetHackathonSubmission :exec
+REPLACE INTO hackathon_submissions (team_name, project_url, project_description, category) VALUES (?, ?, ?, ?);
+
+-- name: SetHackathonWinner :exec
+UPDATE hackathon_submissions SET won_rank = ? WHERE team_name = ?;
+
+-- name: HackathonSubmissions :many
+SELECT * FROM hackathon_submissions;
+
+-- name: HackathonSubmission :one
+SELECT * FROM hackathon_submissions WHERE team_name = ?;
+
+-- name: HackathonWinners :many
+SELECT * FROM hackathon_submissions WHERE won_rank IS NOT NULL ORDER BY won_rank ASC;
