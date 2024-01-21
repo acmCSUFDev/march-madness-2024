@@ -8,7 +8,11 @@
     }
 
     tbody th {
-      width: max-content;
+      @include highlight-glow;
+      small {
+        text-shadow: none;
+        color: var(--muted-color);
+      }
     }
 
     th,
@@ -51,7 +55,7 @@
           background-color: var(--muted-color);
 
           &.solved {
-            background-color: var(--primary);
+            background-color: var(--glow-color-primary);
             box-shadow: 0 0 4px var(--glow-color-primary);
           }
         }

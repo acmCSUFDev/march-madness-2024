@@ -14,15 +14,21 @@ $highlight-glow-primary: 0 0 0.2em var(--glow-color-primary);
 
 @mixin highlight-glow {
   text-shadow: #{$highlight-glow};
+  color: var(--glow-text-color);
 }
 
 @mixin highlight-glow-primary {
   text-shadow: #{$highlight-glow-primary};
+  color: var(--glow-text-color-primary);
 }
 
 @mixin light {
   --glow-color: #{$grey-300};
+  --glow-text-color: #{$black};
+
   --glow-color-primary: #{$primary-200};
+  --glow-text-color-primary: #{$primary-500};
+
   --card-background-color: #{rgba($white, $card-opacity-light)};
   --nav-background-color: #{rgba($primary-200, 0.75)};
   --article-card-color: #{$white};
@@ -31,7 +37,11 @@ $highlight-glow-primary: 0 0 0.2em var(--glow-color-primary);
 
 @mixin dark {
   --glow-color: #{$grey-300};
+  --glow-text-color: #{$white};
+
   --glow-color-primary: #{$primary-500};
+  --glow-text-color-primary: #{$primary-300};
+
   --card-background-color: #{rgba(mix($black, $grey-900, 25%), $card-opacity-dark)};
   --nav-background-color: #{rgba($primary-900, 0.75)};
   --article-card-color: #{$grey-900};

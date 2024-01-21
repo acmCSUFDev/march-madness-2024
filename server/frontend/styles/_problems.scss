@@ -43,12 +43,11 @@
 
 #problem {
   strong {
-    text-shadow: #{$highlight-glow};
+    @include highlight-glow;
     font-weight: 400;
 
     &.primary {
-      text-shadow: #{$highlight-glow-primary};
-      color: #{$primary-300};
+      @include highlight-glow-primary;
     }
   }
 

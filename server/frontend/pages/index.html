@@ -89,11 +89,19 @@
           Join page!
         </p>
         <script>
-          document.getElementById("invite-code").addEventListener("click", function () {
+          let copying = false;
+          const code = document.getElementById("invite-code");
+          code.style.cursor = "pointer";
+          code.addEventListener("click", function () {
+            if (copying) return;
             navigator.clipboard.writeText(this.dataset.tooltip);
             const s = this.dataset.tooltip;
+            copying = true;
             this.dataset.tooltip = "Copied!";
-            setTimeout(() => (this.dataset.tooltip = s), 2000);
+            setTimeout(() => {
+              this.dataset.tooltip = s;
+              copying = false;
+            }, 2000);
           });
         </script>
         <p>
