@@ -2,7 +2,7 @@
 
 import os
 import typing
-from lib import problem_utils
+from problems import problem_utils
 
 # cat nixos/modules/module-list.nix \
 #   | sed -nr 's/^.*\/([a-zA-Z]*)\.nix.*$/\1/p'
