@@ -3,6 +3,7 @@ package server
 import (
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -113,7 +114,7 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 			if part2 {
 				p = 2
 			}
-			table.WeekOfCodeSolves[i][day-1] = p
+			table.WeekOfCodeSolves[i][day.index()] = p
 		}
 	}
 
@@ -142,4 +143,25 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 		Table:     table,
 		Events:    events,
 	})
+}
+
+func (s *Server) parseProblemID(id string) (day problemDay, part2 bool, ok bool) {
+	switch {
+	case strings.HasSuffix(id, "/part1"):
+		part2 = false
+		id = strings.TrimSuffix(id, "/part1")
+	case strings.HasSuffix(id, "/part2"):
+		part2 = true
+		id = strings.TrimSuffix(id, "/part2")
+	default:
+		return
+	}
+	for i, problem := range s.config.Problems.Problems() {
+		if problem.ID() == id {
+			day = problemDay(i + 1)
+			ok = true
+			return
+		}
+	}
+	return
 }

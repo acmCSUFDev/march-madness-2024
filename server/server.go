@@ -30,7 +30,6 @@ type Server struct {
 type ServerConfig struct {
 	FrontendDir          fs.FS
 	SecretKey            SecretKey
-	ProblemIDs           []string
 	Problems             *problem.ProblemSet
 	Database             *db.Database
 	Logger               *slog.Logger

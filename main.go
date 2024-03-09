@@ -71,24 +71,18 @@ func run(ctx context.Context) error {
 
 	problems := make([]problem.Problem, len(config.Problems.Paths))
 	for i, path := range config.Problems.Paths {
-		p, err := problem.ParsePythonProblemDirectory(
-			config.Problems.PWD, path,
-			logger.With("component", "problem"))
+		p, err := problem.NewPythonProblem(config.Problems.PWD, path, logger.With("component", "problem"))
 		if err != nil {
 			return fmt.Errorf("failed to parse problem %q: %w", path, err)
 		}
 		problems[i] = p
 	}
 
-	if config.Paths.ProblemsCache != "" {
-		db, err := problem.WrapAllProblemsWithInputCache(
-			config.Paths.ProblemsCache, problems, config.Problems.Paths,
-			logger.With("component", "problem_cache"))
-		if err != nil {
-			return fmt.Errorf("failed to wrap problems with input cache: %w", err)
-		}
-		defer db.Close()
+	db, err := problem.CacheAllProblems(config.Paths.ProblemsCache, problems, logger.With("component", "problem_cache"))
+	if err != nil {
+		return fmt.Errorf("failed to wrap problems with input cache: %w", err)
 	}
+	defer db.Close()
 
 	problemset := problem.NewProblemSetWithSchedule(problems, &problem.ProblemReleaseSchedule{
 		StartReleaseAt: config.Problems.Schedule.Start,
@@ -98,7 +92,6 @@ func run(ctx context.Context) error {
 	server := server.New(server.ServerConfig{
 		FrontendDir:          frontendDir,
 		SecretKey:            secretKey,
-		ProblemIDs:           config.Problems.Paths,
 		Problems:             problemset,
 		Database:             database,
 		Logger:               logger.With("component", "http"),

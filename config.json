@@ -3,7 +3,6 @@
   "paths": {
     "frontend": "./server/frontend/",
     "database": "/tmp/february-frenzy.db",
-    "problems_cache": "/tmp/february-frenzy-problems-cache.db",
     "secret_key": "/tmp/february-frenzy-secret-paseto.key"
   },
   "problems": {
