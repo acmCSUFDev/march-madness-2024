@@ -1,6 +1,6 @@
 # Booting Up
 
-February Frenzy is here! Most of our server infrastructure is up and running,
+March Madness is here! Most of our server infrastructure is up and running,
 but we need to get the rest of it online before the event starts. We have a
 bunch of services that need to be booted up, but we don't know which ones are
 broken. We need you to help us figure out which services are broken so we can

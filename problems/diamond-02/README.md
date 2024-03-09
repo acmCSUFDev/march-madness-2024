@@ -1,7 +1,7 @@
 # Intruder Alert!
 
 In the heart of California State University, Fullerton, the ACM at CSUF is
-buzzing with excitement during their annual event, "February Frenzy." As the
+buzzing with excitement during their annual event, "March Madness." As the
 campus gears up for this thrilling extravaganza, an unexpected challenge arises.
 
 The university's security system has detected mysterious access to one of its

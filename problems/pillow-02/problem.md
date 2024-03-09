@@ -1,6 +1,6 @@
 # Pairing Peers
 
-It's time to kick off February Frenzy, and unfortunately 
+It's time to kick off March Madness, and unfortunately 
 for you, you have been given one of the hardest tasks 
 that could possibly be assigned to you. That is,
 getting the computer science majors to communicate 
@@ -11,7 +11,7 @@ All of the events to get people collaborating with each
 other have already been planned out by the event organizers.
 Your job now is to group together students in a way that 
 encourages them to meet new people and get them excited
-for February Frenzy! To complete this task, the organizers
+for March Madness! To complete this task, the organizers
 have given their list containing the information of
 all of the people who signed up for the event.
 
