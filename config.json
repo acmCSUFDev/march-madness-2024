@@ -2,8 +2,8 @@
   "http_address": ":8391",
   "paths": {
     "frontend": "./server/frontend/",
-    "database": "/tmp/february-frenzy.db",
-    "secret_key": "/tmp/february-frenzy-secret-paseto.key"
+    "database": "/tmp/march-madness.db",
+    "secret_key": "/tmp/march-madness-secret-paseto.key"
   },
   "problems": {
     "pwd": ".",
@@ -11,9 +11,7 @@
       "./problems/01",
       "./problems/diamond-02",
       "./problems/01",
-      "./problems/01",
-      "./problems/01",
-      "./problems/01",
+      "./problems/crafting",
       "./problems/01"
     ],
     "schedule": {
