@@ -52,6 +52,7 @@
 						sqlc
 	
 						# Web/JavaScript Tools.
+						deno
 						dart-sass
 						prettier-gohtml-nix.packages.${system}.default
 	
@@ -60,6 +61,8 @@
 						python3Packages.black
 						pyright
 					];
+
+					DENO_NO_UPDATE_CHECK = "1"; # Useless in Nix.
 	
 					shellHook = ''
 						python3 -m venv .venv

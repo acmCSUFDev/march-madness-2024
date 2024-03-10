@@ -218,13 +218,15 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 				return fmt.Errorf("failed to record submission: %w", err)
 			}
 
-			_, err = s.database.AddPoints(ctx, db.AddPointsParams{
-				TeamName: u.TeamName,
-				Points:   problem.PointsPerPart,
-				Reason:   "week of code",
-			})
-			if err != nil {
-				return fmt.Errorf("failed to add points: %w", err)
+			if correct {
+				_, err = s.database.AddPoints(ctx, db.AddPointsParams{
+					TeamName: u.TeamName,
+					Points:   problem.PointsPerPart,
+					Reason:   "week of code",
+				})
+				if err != nil {
+					return fmt.Errorf("failed to add points: %w", err)
+				}
 			}
 
 			return nil
