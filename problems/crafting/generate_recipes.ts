@@ -40,8 +40,10 @@ async function main() {
   // Get the custom JSON formatting that we want.
   let output = "{\n";
   for (const [i, recipe] of Object.entries(outputRecipes).entries()) {
-    const result = JSON.stringify(recipe[0]);
-    const [first, second] = recipe[1].map((s) => JSON.stringify(s));
+    const [result, first, second] = [recipe[0], ...recipe[1]]
+      .map((s) => sanitizeName(s))
+      .map((s) => JSON.stringify(s));
+
     output += `  ${result}: [${first}, ${second}]`;
     output += i === Object.keys(outputRecipes).length - 1 ? "\n" : ",\n";
   }
@@ -61,6 +63,10 @@ async function main() {
   // }
   // output += "]\n";
   // await Deno.writeTextFile(outputRecipesFile, output);
+}
+
+function sanitizeName(name: string): string {
+  return name.toLowerCase().replaceAll("+", "p").replaceAll("=", "?");
 }
 
 function arrayEquals<T>(a: T[], b: T[]): boolean {

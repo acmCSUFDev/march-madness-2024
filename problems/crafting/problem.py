@@ -29,13 +29,6 @@ class Problem(problem_utils.Problem):
         with open(RECIPES_JSON, "r") as f:
             self.recipes = json.loads(f.read())
 
-        # Be lazy. I don't care!
-        self.items.relevant_items = sanitize_names(self.items.relevant_items)
-        self.items.miscellaneous_items = sanitize_names(self.items.miscellaneous_items)
-        self.recipes = {
-            sanitize_name(k): sanitize_names(v) for k, v in self.recipes.items()
-        }
-
         self.wanted = self.rand.sample(self.items.relevant_items, 6)
 
     def generate_input(self, output: typing.IO | None = None):
@@ -50,17 +43,6 @@ class Problem(problem_utils.Problem):
 
     def part2_answer(self) -> int:
         raise NotImplementedError
-
-
-def sanitize_name(name: str) -> str:
-    name = name.lower()
-    name = name.replace("+", "p")
-    name = name.replace("=", "?")
-    return name
-
-
-def sanitize_names(names: list[str]) -> list[str]:
-    return [sanitize_name(name) for name in names]
 
 
 if __name__ == "__main__":
