@@ -11,7 +11,10 @@ function enableBubbles() {
   document.body.appendChild(bubbles);
 
   const updateHeight = () => {
-    bubbles.style.setProperty("--page-height", document.body.scrollHeight + "px");
+    bubbles.style.setProperty(
+      "--page-height",
+      document.body.scrollHeight + "px",
+    );
   };
 
   const resizeObserver = new ResizeObserver(() => updateHeight());
@@ -117,7 +120,8 @@ if (preference != null) {
 } else {
   const isReduced =
     window.matchMedia(`(prefers-reduced-motion: reduce)`) === true ||
-    window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true;
+    window.matchMedia(`(prefers-reduced-motion: reduce)`).matches === true ||
+    location.pathname.startsWith("/problems/"); // Disable bubbles on problem pages
   if (!isReduced) {
     enableBubbles();
   }
