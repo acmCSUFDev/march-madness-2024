@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 
-from dataclasses import dataclass
 import json
 import typing
 from logging import debug
@@ -30,7 +29,7 @@ class Problem(problem_utils.Problem):
             self.items.relevant_items = [x.lower() for x in self.items.relevant_items]
 
         with open(RECIPES_JSON, "r") as f:
-            recipes = json.loads(f.read())
+            recipes: dict[str, list[str]] = json.loads(f.read())
 
         # Randomly decide whether to collapse a recipe with the next one.
         self.recipes = recipes.copy()
@@ -41,20 +40,23 @@ class Problem(problem_utils.Problem):
             # Remove any ingredients that are within our list of relevant items.
             choosing = [x for x in choosing if x not in self.items.relevant_items]
 
-            if not choosing:
-                continue
+            for ingredient in choosing:
+                if not self.coin_flip(0.1):
+                    continue
 
-            if self.coin_flip(0.1):
-                which = self.rand.choice(choosing)
-                index = ingredients.index(which)
-                debug(f"Collapsing ({which} = {self.recipes[which]}) into {result}")
+                debug(f"Collapsing {ingredient} = {self.recipes[ingredient]}")
 
+                # Replace the ingredient with its recipe.
+                index = ingredients.index(ingredient)
                 ingredients = (
-                    ingredients[:index] + self.recipes[which] + ingredients[index + 1 :]
+                    ingredients[:index]
+                    + self.recipes[ingredient]
+                    + ingredients[index + 1 :]
                 )
+
                 debug(f"  new ingredients: {ingredients}")
                 self.recipes[result] = ingredients
-                del self.recipes[which]
+                del self.recipes[ingredient]
 
         self.wanted = self.rand.sample(self.items.relevant_items, 6)
 

@@ -17,7 +17,7 @@ async function main() {
     ),
   );
 
-  const outputRecipes: { [key: string]: [string, string] } = {};
+  const outputRecipes: { [key: string]: string[] } = {};
   for (const recipes of wantedRecipes) {
     for (const recipe of recipes) {
       if (recipe.result in outputRecipes) {
@@ -31,38 +31,27 @@ async function main() {
     }
   }
 
-  console.log(
-    "Got a total of",
-    Object.entries(outputRecipes).length,
-    "recipes",
-  );
+  console.log("Got a total of", Object.entries(outputRecipes).length, "recipes");
+
+  // Deduplicate all recipe ingredients.
+  for (const [result, ingredients] of Object.entries(outputRecipes)) {
+    outputRecipes[result] = [...new Set(ingredients)];
+  }
 
   // Get the custom JSON formatting that we want.
-  let output = "{\n";
-  for (const [i, recipe] of Object.entries(outputRecipes).entries()) {
-    const [result, first, second] = [recipe[0], ...recipe[1]]
+  const lines = [];
+  for (const recipe of Object.entries(outputRecipes)) {
+    const [result, ...ingredients] = [recipe[0], ...recipe[1]]
       .map((s) => sanitizeName(s))
       .map((s) => JSON.stringify(s));
-
-    output += `  ${result}: [${first}, ${second}]`;
-    output += i === Object.keys(outputRecipes).length - 1 ? "\n" : ",\n";
+    lines.push(`  ${result}: [${ingredients.join(", ")}],`);
   }
-  output += "}\n";
-
-  console.log("Hash of output:", sha256(output, undefined, "base64"));
+  lines.sort();
+  lines.push(lines.pop().slice(0, -1)); // remove trailing comma
+  const output = "{\n" + lines.join("\n") + "\n}\n";
 
   await Deno.writeTextFile(outputRecipesFile, output);
-
-  // outputRecipes.sort();
-  //
-  // // Get the custom JSON formatting that we want.
-  // let output = "[\n";
-  // for (const recipe of outputRecipes) {
-  //   const [result, first, second] = recipe.map((s) => JSON.stringify(s));
-  //   output += `  [${result}, ${first}, ${second}],\n`;
-  // }
-  // output += "]\n";
-  // await Deno.writeTextFile(outputRecipesFile, output);
+  console.log("Hash of output:", sha256(output, undefined, "base64"));
 }
 
 function sanitizeName(name: string): string {
@@ -79,10 +68,9 @@ function arrayEquals<T>(a: T[], b: T[]): boolean {
 }
 
 async function findRecipesForItem(item: string): Promise<Recipe[]> {
-  const worker = new Worker(
-    import.meta.resolve("./generate_recipes_worker.ts"),
-    { type: "module" },
-  );
+  const worker = new Worker(import.meta.resolve("./generate_recipes_worker.ts"), {
+    type: "module",
+  });
   const promise = new Promise<Recipe[]>((resolve, reject) => {
     worker.onmessage = (event: MessageEvent<WorkerMessage>) => {
       if (event.data.ok === true) {
@@ -98,13 +86,7 @@ async function findRecipesForItem(item: string): Promise<Recipe[]> {
   worker.postMessage({ item });
   try {
     const recipes = await promise;
-    console.log(
-      "Got recipes for",
-      item,
-      "containing",
-      recipes.length,
-      "recipes",
-    );
+    console.log("Got recipes for", item, "containing", recipes.length, "recipes");
     return recipes;
   } finally {
     worker.terminate();
