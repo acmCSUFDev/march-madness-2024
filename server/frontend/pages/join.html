@@ -13,7 +13,8 @@
     {{ if .TeamName }}
       <p>
         <strong>
-          You are already on a team <mark data-tooltip="Team name">{{ .TeamName }}</mark> as
+          You are already on a team
+          <mark data-tooltip="Team name">{{ .TeamName }}</mark> as
           <mark data-tooltip="Username">{{ .Username }}</mark>.
         </strong>
         You can change teams by entering a new team code or creating a new team.
@@ -51,24 +52,49 @@
         {{ end }}
       />
 
-      <input
-        maxlength="32"
-        minlength="2"
-        type="text"
-        name="team_name"
-        placeholder="Team Name or Team Code"
-        pattern="[a-zA-Z-_ ]{2,32}"
-        title="Team name must be of length [2, 32] consisting of letters and spaces only!"
-        value="{{ .FillingTeamName }}"
-        autocomplete="off"
-        required
-      />
+      <div class="team-grid">
+        <div class="left">
+          <input
+            maxlength="32"
+            minlength="2"
+            type="text"
+            name="team_name"
+            placeholder="Team Name"
+            pattern="[a-zA-Z-_ ]{2,32}"
+            title="Team name must be of length [2, 32] consisting of letters and spaces only!"
+            value="{{ .FillingTeamName }}"
+            autocomplete="on"
+            required
+          />
 
-      {{ if .TeamName }}
-        <button type="submit" class="secondary" id="submit-team">Change</button>
-      {{ else }}
-        <button type="submit" id="submit-team">Join</button>
-      {{ end }}
+          {{ if .TeamName }}
+            <button type="submit" id="submit-team" class="seecondary">Rename</button>
+          {{ else }}
+            <button type="submit" id="submit-team">Create</button>
+          {{ end }}
+        </div>
+
+        <div class="separator">
+          <p>or</p>
+        </div>
+
+        <div class="right">
+          <input
+            maxlength="19"
+            minlength="19"
+            type="text"
+            name="team_code"
+            placeholder="Team Code"
+            pattern="[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}"
+            title="Team code must be in the format xxxx-xxxx-xxxx-xxxx!"
+            value="{{ .FillingTeamCode }}"
+            autocomplete="off"
+            required
+          />
+
+          <button type="submit" id="submit-team" class="secondary">Join</button>
+        </div>
+      </div>
     </form>
 
     <footer>

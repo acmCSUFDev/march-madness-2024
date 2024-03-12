@@ -116,10 +116,11 @@ func generateInviteCode() string {
 	const letters = "abcdefghijklmnopqrstuvwxyz0123456789"
 	const word = 4
 	const count = 4
+	const length = word*count + count - 1
 
 	r := rand.New(rand.NewSource(time.Now().UnixNano()))
 	var b strings.Builder
-	b.Grow(word*count + count - 1)
+	b.Grow(length)
 
 	for i := 0; i < count; i++ {
 		if i != 0 {

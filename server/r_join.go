@@ -22,6 +22,7 @@ type joinPageData struct {
 	OpenRegistrationTime time.Time
 	FillingUsername      string
 	FillingTeamName      string
+	FillingTeamCode      string
 	Error                string
 }
 
@@ -39,6 +40,7 @@ func (s *Server) joinPage(w http.ResponseWriter, r *http.Request) {
 var (
 	reUsername = regexp.MustCompile(`^[a-zA-Z0-9-_ ]{2,32}$`)
 	reTeamName = regexp.MustCompile(`^[a-zA-Z0-9-_ ]{2,32}$`)
+	reTeamCode = regexp.MustCompile(`^[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}-[a-z0-9]{4}$`)
 )
 
 func (s *Server) join(w http.ResponseWriter, r *http.Request) {
@@ -63,6 +65,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 	var data struct {
 		Username string `schema:"username"`
 		TeamName string `schema:"team_name"`
+		TeamCode string `schema:"team_code"`
 	}
 	if err := unmarshalForm(r, &data); err != nil {
 		writeError(err)
@@ -71,27 +74,45 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 
 	pageData.FillingUsername = data.Username
 	pageData.FillingTeamName = data.TeamName
+	pageData.FillingTeamCode = data.TeamCode
 
-	if data.Username != "" || !isAuthenticated {
+	if data.TeamName != "" && data.TeamCode != "" {
+		writeError(fmt.Errorf("cannot provide both team name and team code"))
+		return
+	}
+
+	if isAuthenticated {
+		// If no username is provided, default to the current username.
+		if data.Username == "" {
+			data.Username = u.Username
+		}
+
+		// If neither team name nor team code is provided, assume the user
+		// remains on their current team.
+		if data.TeamName == "" && data.TeamCode == "" {
+			data.TeamName = u.TeamName
+		}
+	} else {
 		if !reUsername.MatchString(data.Username) {
 			writeError(fmt.Errorf("invalid username"))
 			return
 		}
-	}
 
-	if data.TeamName != "" || !isAuthenticated {
-		if !reTeamName.MatchString(data.TeamName) {
-			writeError(fmt.Errorf("invalid team name"))
-			return
+		// If neither team name nor team code is provided, default to the
+		// username.
+		if data.TeamName == "" && data.TeamCode == "" {
+			data.TeamName = data.Username
 		}
 	}
 
-	if isAuthenticated {
-		data.Username = u.Username
+	if data.TeamName != "" && !reTeamName.MatchString(data.TeamName) {
+		writeError(fmt.Errorf("invalid team name"))
+		return
 	}
 
-	if data.TeamName == "" && isAuthenticated {
-		data.TeamName = u.TeamName
+	if data.TeamCode != "" && !reTeamCode.MatchString(data.TeamCode) {
+		writeError(fmt.Errorf("invalid team code"))
+		return
 	}
 
 	err := s.database.Tx(func(q *db.Queries) error {
@@ -116,35 +137,32 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		team, err := q.FindTeamWithInviteCode(ctx, data.TeamName)
-		if err == nil {
-			_, err := q.JoinTeam(ctx, db.JoinTeamParams{
-				TeamName: team.TeamName,
-				Username: data.Username,
+		var isLeader bool
+		if data.TeamCode != "" {
+			t, err := q.FindTeamWithInviteCode(ctx, data.TeamCode)
+			if err != nil {
+				return fmt.Errorf("failed to find team: %w", err)
+			}
+			data.TeamName = t.TeamName
+		} else {
+			_, err := q.CreateTeam(ctx, db.CreateTeamParams{
+				TeamName:   data.TeamName,
+				InviteCode: generateInviteCode(),
 			})
 			if err != nil {
-				return fmt.Errorf("failed to join team: %w", err)
+				return fmt.Errorf("failed to create team: %w", err)
 			}
-			return nil
+			isLeader = true
 		}
 
-		_, err = q.CreateTeam(ctx, db.CreateTeamParams{
-			TeamName:   data.TeamName,
-			InviteCode: generateInviteCode(),
-		})
-		if err != nil {
-			return fmt.Errorf("failed to create team: %w", err)
-		}
-
-		_, err = q.JoinTeam(ctx, db.JoinTeamParams{
+		_, err := q.JoinTeam(ctx, db.JoinTeamParams{
 			TeamName: data.TeamName,
 			Username: data.Username,
-			IsLeader: true,
+			IsLeader: isLeader,
 		})
 		if err != nil {
 			return fmt.Errorf("failed to join team: %w", err)
 		}
-
 		return nil
 	})
 	if err != nil {
