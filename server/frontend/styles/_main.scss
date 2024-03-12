@@ -42,7 +42,10 @@ $highlight-glow-primary: 0 0 0.2em var(--glow-color-primary);
   --glow-color-primary: #{$primary-500};
   --glow-text-color-primary: #{$primary-300};
 
-  --card-background-color: #{rgba(mix($black, $grey-900, 25%), $card-opacity-dark)};
+  --card-background-color: #{rgba(
+      mix($black, $grey-900, 25%),
+      $card-opacity-dark
+    )};
   --nav-background-color: #{rgba($primary-900, 0.75)};
   --article-card-color: #{$grey-900};
   --bubble-color: #{$grey-300};
@@ -128,4 +131,8 @@ article > footer {
 article > header,
 article > footer {
   background-color: var(--article-card-color);
+}
+
+pre {
+  margin-bottom: var(--typography-spacing-vertical);
 }
