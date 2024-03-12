@@ -67,6 +67,9 @@ class Problem(problem_utils.Problem):
         for pt in pts:
             shape = self.random.choice(["circle", "rectangle", "star"])
             self.draw_shape(shape, pt)
+        # Write to output file
+        for r in self.grid:
+            print(''.join(r), ''.join(r), file=output)
 
     # Return the number of empty '.' in the grid
     def part1_answer(self):
