@@ -1,4 +1,4 @@
-module libdb.so/february-frenzy
+module dev.acmcsuf.com/march-madness-2024
 
 go 1.21.5
 

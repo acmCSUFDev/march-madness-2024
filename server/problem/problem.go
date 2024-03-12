@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
+	"dev.acmcsuf.com/march-madness-2024/server/internal/badgerstub"
 	"github.com/dgraph-io/badger/v4"
-	"libdb.so/february-frenzy/server/internal/badgerstub"
 
 	badgeropts "github.com/dgraph-io/badger/v4/options"
 )

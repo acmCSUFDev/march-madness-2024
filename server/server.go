@@ -7,13 +7,13 @@ import (
 	"net/http"
 	"time"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
+	"dev.acmcsuf.com/march-madness-2024/server/db"
+	"dev.acmcsuf.com/march-madness-2024/server/frontend"
+	"dev.acmcsuf.com/march-madness-2024/server/problem"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/gorilla/schema"
-	"libdb.so/february-frenzy/internal/config"
-	"libdb.so/february-frenzy/server/db"
-	"libdb.so/february-frenzy/server/frontend"
-	"libdb.so/february-frenzy/server/problem"
 	"libdb.so/tmplutil"
 )
 

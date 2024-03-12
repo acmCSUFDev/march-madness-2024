@@ -6,10 +6,10 @@ import (
 	"slices"
 	"time"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
+	"dev.acmcsuf.com/march-madness-2024/server/db"
+	"dev.acmcsuf.com/march-madness-2024/server/frontend"
 	"github.com/go-chi/chi/v5"
-	"libdb.so/february-frenzy/internal/config"
-	"libdb.so/february-frenzy/server/db"
-	"libdb.so/february-frenzy/server/frontend"
 )
 
 func (s *Server) routeHackathon(r chi.Router) {

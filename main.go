@@ -9,13 +9,13 @@ import (
 	"os"
 	"os/signal"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
+	"dev.acmcsuf.com/march-madness-2024/server"
+	"dev.acmcsuf.com/march-madness-2024/server/db"
+	"dev.acmcsuf.com/march-madness-2024/server/problem"
 	"github.com/go-chi/httplog/v2"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/pflag"
-	"libdb.so/february-frenzy/internal/config"
-	"libdb.so/february-frenzy/server"
-	"libdb.so/february-frenzy/server/db"
-	"libdb.so/february-frenzy/server/problem"
 	"libdb.so/hserve"
 )
 

@@ -15,9 +15,9 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
+	"dev.acmcsuf.com/march-madness-2024/server/db"
 	"github.com/spf13/pflag"
-	"libdb.so/february-frenzy/internal/config"
-	"libdb.so/february-frenzy/server/db"
 )
 
 var (
