@@ -43,7 +43,7 @@ func (s *Server) listProblems(w http.ResponseWriter, r *http.Request) {
 
 type problemPageData struct {
 	frontend.ComponentContext
-	Problem       problem.Problem
+	Problem       *problem.Problem
 	Day           problemDay
 	PointsPerPart int
 	SolvedPart1   bool
@@ -255,7 +255,7 @@ func (p problemDay) index() int {
 	return int(p) - 1
 }
 
-func (s *Server) getProblemFromRequest(r *http.Request) (problem.Problem, problemDay, error) {
+func (s *Server) getProblemFromRequest(r *http.Request) (*problem.Problem, problemDay, error) {
 	day, err := strconv.Atoi(chi.URLParam(r, "problemDay"))
 	if err != nil {
 		return nil, 0, err
@@ -274,11 +274,9 @@ func (s *Server) problemID(day problemDay, part2 bool) string {
 	if problem == nil {
 		return ""
 	}
-	id := problem.ID()
 	if part2 {
-		id += "/part2"
+		return problem.ID + "/part2"
 	} else {
-		id += "/part1"
+		return problem.ID + "/part1"
 	}
-	return id
 }

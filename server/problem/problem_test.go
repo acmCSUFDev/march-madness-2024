@@ -9,13 +9,13 @@ import (
 	"github.com/neilotoole/slogt"
 )
 
-func TestPythonProblem(t *testing.T) {
+func TestCommandRunner(t *testing.T) {
 	logger := slogt.New(t)
 
 	// We're in ./server/problem.
 	// The problem is in ./problems/01.
-	problem, err := NewPythonProblem("../../", "problems/01", logger)
-	assert.NoError(t, err, "cannot create PythonProblem at /problems/01")
+	problem, err := NewCommandRunner(logger, "cd ../../ && python3 -m problems.booting-up")
+	assert.NoError(t, err, "cannot create test runner")
 
 	for i := 0; i < 5; i++ {
 		// Ensure deterministic output.
@@ -44,16 +44,16 @@ type problemInputAndSolutions struct {
 	Part2 int64
 }
 
-func getProblemInputAndSolutions(t *testing.T, problem Problem) problemInputAndSolutions {
+func getProblemInputAndSolutions(t *testing.T, runner Runner) problemInputAndSolutions {
 	const seed = 0
 
-	input, err := problem.Input(context.Background(), seed)
+	input, err := runner.Input(context.Background(), seed)
 	assert.NoError(t, err, "cannot get input")
 
-	part1, err := problem.Part1Solution(context.Background(), seed)
+	part1, err := runner.Part1Solution(context.Background(), seed)
 	assert.NoError(t, err, "cannot get part 1 solution")
 
-	part2, err := problem.Part2Solution(context.Background(), seed)
+	part2, err := runner.Part2Solution(context.Background(), seed)
 	assert.NoError(t, err, "cannot get part 2 solution")
 
 	return problemInputAndSolutions{input, part1, part2}

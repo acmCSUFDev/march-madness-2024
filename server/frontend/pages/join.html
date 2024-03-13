@@ -64,7 +64,6 @@
             title="Team name must be of length [2, 32] consisting of letters and spaces only!"
             value="{{ .FillingTeamName }}"
             autocomplete="on"
-            required
           />
 
           {{ if .TeamName }}
@@ -89,7 +88,6 @@
             title="Team code must be in the format xxxx-xxxx-xxxx-xxxx!"
             value="{{ .FillingTeamCode }}"
             autocomplete="off"
-            required
           />
 
           <button type="submit" id="submit-team" class="secondary">Join</button>

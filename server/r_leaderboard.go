@@ -157,7 +157,7 @@ func (s *Server) parseProblemID(id string) (day problemDay, part2 bool, ok bool)
 		return
 	}
 	for i, problem := range s.config.Problems.Problems() {
-		if problem.ID() == id {
+		if problem.ID == id {
 			day = problemDay(i + 1)
 			ok = true
 			return

@@ -10,7 +10,6 @@ import (
 	"log/slog"
 	"math"
 	"os/exec"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -25,13 +24,28 @@ import (
 // problem.
 const PointsPerPart = 100
 
-// Problem describes a problem that can be solved.
-type Problem interface {
+// Problem is a problem that can be solved.
+type Problem struct {
 	// ID returns the unique ID of the problem.
 	// The ID may be in any format, but it must be unique.
-	ID() string
+	ID string
 	// Description returns the description of the problem.
-	Description() ProblemDescription
+	Description ProblemDescription
+
+	Runner
+}
+
+// NewProblem creates a new problem.
+func NewProblem(id string, desc ProblemDescription, runner Runner) Problem {
+	return Problem{
+		ID:          id,
+		Description: desc,
+		Runner:      runner,
+	}
+}
+
+// Runner is a problem runner.
+type Runner interface {
 	// Input generates the input for the problem.
 	Input(ctx context.Context, seed int) (string, error)
 	// Part1Solution returns the solution to part 1 of the problem.
@@ -40,51 +54,28 @@ type Problem interface {
 	Part2Solution(ctx context.Context, seed int) (int64, error)
 }
 
-// PythonProblem is a helper struct for Python input generators.
-// It invokes the Python script according to lib/problem_utils.py.
-type PythonProblem struct {
-	logger      *slog.Logger
-	description ProblemDescription
-	module      string
-	path        string
-	pwd         string
+// CommandRunner implements Runner using a command.
+type CommandRunner struct {
+	logger  *slog.Logger
+	command string
 }
 
-// NewPythonProblem creates a new Python input generator.
-// It assumes that the Python script is executed as a module named `problem`.
-func NewPythonProblem(pwd, path string, logger *slog.Logger) (*PythonProblem, error) {
-	description, err := ParseProblemDescriptionDirectory(pwd, path)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse problem description: %w", err)
-	}
-
-	modulePath := strings.ReplaceAll(filepath.Clean(path), "/", ".") + ".problem"
-	return &PythonProblem{
-		logger:      logger,
-		description: description,
-		module:      modulePath,
-		path:        path,
-		pwd:         pwd,
+// NewCommandRunner creates a new CommandRunner from a command.
+// The command must be in the format "command arg1 arg2 ...".
+func NewCommandRunner(logger *slog.Logger, cmd string) (*CommandRunner, error) {
+	return &CommandRunner{
+		logger:  logger.With("runner", "command"),
+		command: cmd,
 	}, nil
 }
 
-// ID implements Problem.
-func (p *PythonProblem) ID() string {
-	return fmt.Sprintf("python:%s:%s", p.pwd, p.module)
-}
-
-// Description implements Problem.
-func (p *PythonProblem) Description() ProblemDescription {
-	return p.description
-}
-
 // Input implements Problem.
-func (p *PythonProblem) Input(ctx context.Context, seed int) (string, error) {
-	return p.run(ctx, seed)
+func (p *CommandRunner) Input(ctx context.Context, seed int) (string, error) {
+	return p.run(ctx, seed, "")
 }
 
 // Part1Solution implements Problem.
-func (p *PythonProblem) Part1Solution(ctx context.Context, seed int) (int64, error) {
+func (p *CommandRunner) Part1Solution(ctx context.Context, seed int) (int64, error) {
 	s, err := p.run(ctx, seed, "--part1")
 	if err != nil {
 		return 0, err
@@ -93,7 +84,7 @@ func (p *PythonProblem) Part1Solution(ctx context.Context, seed int) (int64, err
 }
 
 // Part2Solution implements Problem.
-func (p *PythonProblem) Part2Solution(ctx context.Context, seed int) (int64, error) {
+func (p *CommandRunner) Part2Solution(ctx context.Context, seed int) (int64, error) {
 	s, err := p.run(ctx, seed, "--part2")
 	if err != nil {
 		return 0, err
@@ -101,19 +92,16 @@ func (p *PythonProblem) Part2Solution(ctx context.Context, seed int) (int64, err
 	return strconv.ParseInt(s, 10, 64)
 }
 
-func (p *PythonProblem) run(ctx context.Context, seed int, args ...string) (string, error) {
-	args = append([]string{"-m", p.module, "--seed", strconv.Itoa(seed)}, args...)
-
+func (p *CommandRunner) run(ctx context.Context, seed int, args string) (string, error) {
+	command := p.command + " " + args
 	logger := p.logger.With(
-		"problem_id", p.ID(),
 		"seed", seed,
-		"args", args)
+		"command", command)
 
 	var buf strings.Builder
 	buf.Grow(128)
 
-	cmd := exec.CommandContext(ctx, "python3", args...)
-	cmd.Dir = p.pwd
+	cmd := exec.CommandContext(ctx, "sh", "-c", command)
 	cmd.Stdout = &buf
 
 	start := time.Now()
@@ -123,8 +111,8 @@ func (p *PythonProblem) run(ctx context.Context, seed int, args ...string) (stri
 	if err != nil {
 		var exitErr *exec.ExitError
 		if errors.As(err, &exitErr) {
-			logger.DebugContext(ctx,
-				"failed to generate input using Python input generator",
+			logger.ErrorContext(ctx,
+				"failed to generate input using command runner",
 				"duration", taken,
 				"exit_code", exitErr.ExitCode(),
 				"stdout", buf.String(),
@@ -141,47 +129,38 @@ func (p *PythonProblem) run(ctx context.Context, seed int, args ...string) (stri
 	return strings.TrimSuffix(buf.String(), "\n"), nil
 }
 
-// CachedProblem wraps a Problem and caches the results in a persistent
+// CachedRunner wraps a Runner and caches the results in a persistent
 // database.
-type CachedProblem struct {
-	cache   *badger.DB
-	logger  *slog.Logger
-	problem Problem
+type CachedRunner struct {
+	cache     *badger.DB
+	logger    *slog.Logger
+	problemID string
+	runner    Runner
 }
 
-// NewCachedInputGenerator creates a new cached input generator from an existing
-// database.
-func NewCachedInputGenerator(db *badger.DB, problem Problem, logger *slog.Logger) *CachedProblem {
-	return &CachedProblem{
-		cache:   db,
-		problem: problem,
-		logger:  logger.With("problem_id", problem.ID()),
+// NewCachedRunner creates a new cached runner with an existing Badger database.
+func NewCachedRunner(db *badger.DB, logger *slog.Logger, problem Problem) *CachedRunner {
+	return &CachedRunner{
+		cache:     db,
+		logger:    logger.With("runner", "cached"),
+		problemID: problem.ID,
+		runner:    problem.Runner,
 	}
 }
 
-// ID implements Problem.
-func (c *CachedProblem) ID() string {
-	return c.problem.ID()
-}
-
-// Description implements Problem.
-func (c *CachedProblem) Description() ProblemDescription {
-	return c.problem.Description()
-}
-
 // Input implements Problem.
-func (c *CachedProblem) Input(ctx context.Context, seed int) (string, error) {
-	return getCache(ctx, c, seed, inputCacheKey, c.problem.Input)
+func (c *CachedRunner) Input(ctx context.Context, seed int) (string, error) {
+	return getCache(ctx, c, seed, inputCacheKey, c.runner.Input)
 }
 
 // Part1Solution implements Problem.
-func (c *CachedProblem) Part1Solution(ctx context.Context, seed int) (int64, error) {
-	return getCache(ctx, c, seed, part1CacheKey, c.problem.Part1Solution)
+func (c *CachedRunner) Part1Solution(ctx context.Context, seed int) (int64, error) {
+	return getCache(ctx, c, seed, part1CacheKey, c.runner.Part1Solution)
 }
 
 // Part2Solution implements Problem.
-func (c *CachedProblem) Part2Solution(ctx context.Context, seed int) (int64, error) {
-	return getCache(ctx, c, seed, part2CacheKey, c.problem.Part2Solution)
+func (c *CachedRunner) Part2Solution(ctx context.Context, seed int) (int64, error) {
+	return getCache(ctx, c, seed, part2CacheKey, c.runner.Part2Solution)
 }
 
 type problemCacheKey string
@@ -194,11 +173,11 @@ const (
 
 func getCache[T any](
 	ctx context.Context,
-	c *CachedProblem,
+	c *CachedRunner,
 	seed int, key problemCacheKey, fn func(context.Context, int) (T, error),
 ) (T, error) {
 
-	id := c.problem.ID()
+	id := c.problemID
 	dbKey := []byte("[v2][" + id + "][" + strconv.Itoa(seed) + "][" + string(key) + "]")
 
 	logger := c.logger.With(
@@ -264,8 +243,7 @@ func CacheAllProblems(cacheDBPath string, problems []Problem, logger *slog.Logge
 	}
 
 	for i := range problems {
-		input := NewCachedInputGenerator(db, problems[i], logger)
-		problems[i] = input
+		problems[i].Runner = NewCachedRunner(db, logger, problems[i])
 	}
 
 	return db, nil

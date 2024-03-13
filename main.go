@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/signal"
 
-	"dev.acmcsuf.com/march-madness-2024/internal/config"
 	"dev.acmcsuf.com/march-madness-2024/server"
 	"dev.acmcsuf.com/march-madness-2024/server/db"
 	"dev.acmcsuf.com/march-madness-2024/server/problem"
@@ -50,7 +49,7 @@ func run(ctx context.Context) error {
 	logger := slog.New(logOutput)
 	slog.SetDefault(logger)
 
-	config, err := config.ParseFile(configPath)
+	config, err := ParseConfigFile(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}
@@ -69,13 +68,19 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to ensure secret key exists: %w", err)
 	}
 
-	problems := make([]problem.Problem, len(config.Problems.Paths))
-	for i, path := range config.Problems.Paths {
-		p, err := problem.NewPythonProblem(config.Problems.PWD, path, logger.With("component", "problem"))
+	problems := make([]problem.Problem, len(config.Problems.Modules))
+	for i, module := range config.Problems.Modules {
+		description, err := problem.ParseProblemDescriptionFile(module.README)
 		if err != nil {
-			return fmt.Errorf("failed to parse problem %q: %w", path, err)
+			return fmt.Errorf("failed to parse README file at %q: %w", module.README, err)
 		}
-		problems[i] = p
+
+		runner, err := problem.NewCommandRunner(logger.With("component", "runner"), module.Command)
+		if err != nil {
+			return fmt.Errorf("failed to create command runner %q: %w", module.Command, err)
+		}
+
+		problems[i] = problem.NewProblem(module.README, description, runner)
 	}
 
 	db, err := problem.CacheAllProblems(config.Paths.ProblemsCache, problems, logger.With("component", "problem_cache"))

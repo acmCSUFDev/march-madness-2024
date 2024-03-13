@@ -3,7 +3,6 @@ package problem
 import (
 	"fmt"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -32,10 +31,9 @@ func ParseProblemDescription(readme string) (ProblemDescription, error) {
 	return parseProblemREADME(readme)
 }
 
-// ParseProblemDescriptionDirectory parses a problem description from a
-// directory. The directory is assumed to contain a README.md file.
-func ParseProblemDescriptionDirectory(pwd, path string) (ProblemDescription, error) {
-	readmeFile, err := os.ReadFile(filepath.Join(pwd, path, "README.md"))
+// ParseProblemDescriptionFile parses a problem description from a file.
+func ParseProblemDescriptionFile(readmePath string) (ProblemDescription, error) {
+	readmeFile, err := os.ReadFile(readmePath)
 	if err != nil {
 		return ProblemDescription{}, fmt.Errorf("failed to read README.md: %w", err)
 	}

@@ -91,6 +91,7 @@
 						# Go Tools.
 						go
 						gopls
+						gotools
 						go-tools
 						gomod2nix.packages.${system}.default
 						sqlc

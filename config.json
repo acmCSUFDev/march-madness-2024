@@ -8,12 +8,13 @@
   "problems": {
     "modules": [
       {
-        "readme": "./problems/booting-up/README.md",
-        "module": "python3 -m ./problems/booting-up"
+        "cmd": "python3 -m problems.booting-up",
+        "readme": "./problems/booting-up/README.md"
       },
-      "./problems/01",
-      "./problems/01",
-      "./problems/crafting"
+      {
+        "cmd": "python3 -m problems.crafting",
+        "readme": "./problems/crafting/README.md"
+      }
     ],
     "schedule": {
       "start": "2024-03-12T00:00:00-08:00",
