@@ -6,22 +6,23 @@
     "secret_key": "/tmp/march-madness-secret-paseto.key"
   },
   "problems": {
-    "pwd": ".",
-    "paths": [
+    "modules": [
+      {
+        "readme": "./problems/booting-up/README.md",
+        "module": "python3 -m ./problems/booting-up"
+      },
       "./problems/01",
-      "./problems/diamond-02",
       "./problems/01",
-      "./problems/crafting",
-      "./problems/01"
+      "./problems/crafting"
     ],
     "schedule": {
-      "start": "2024-01-18T22:52:18-08:00",
-      "every": "48h"
+      "start": "2024-03-12T00:00:00-08:00",
+      "every": "24h"
     }
   },
   "hackathon": {
-    "start_time": "2024-01-18T22:52:18-08:00",
+    "start_time": "2024-03-16T00:00:00-08:00",
     "duration": "48h"
   },
-  "open_registration_time": "2024-01-18T22:52:18-08:00"
+  "open_registration_time": "2024-03-12T00:00:00-08:00"
 }

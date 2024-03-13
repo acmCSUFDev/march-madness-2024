@@ -1,0 +1,20 @@
+[project]
+name = "march-madness-2024"
+dynamic = ["version"]
+requires-python = ">=3.9"
+dependencies = [
+  "pydantic",
+]
+
+[project.scripts]
+problem-booting-up = "problems.booting-up"
+# problem-crafting = "problems.crafting"
+# problem-intruder-alert = "problems.intruder-alert"
+
+[tool.setuptools.packages.find]
+include = ["problems"]
+namespaces = true
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"

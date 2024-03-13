@@ -1,6 +1,8 @@
 __pycache__
-node_modules
-server/frontend/static/styles.css
-server/frontend/static/styles.css.map
-.venv
-venv
+/server/frontend/static/styles.css
+/server/frontend/static/styles.css.map
+/.venv
+/venv
+/*.egg-info
+/result
+/build
