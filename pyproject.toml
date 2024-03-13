@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "march-madness-2024"
+version = "0.1.0"
+description = ""
+authors = []
+readme = "README.md"
+
+[[tool.poetry.packages]]
+from = "."
+include = "problems"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pydantic = "^2.6.4"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

@@ -9,44 +9,89 @@
 		gomod2nix.inputs.nixpkgs.follows = "nixpkgs";
 		gomod2nix.inputs.flake-utils.follows = "flake-utils";
 
+		poetry2nix.url = "github:nix-community/poetry2nix";
+		poetry2nix.inputs.nixpkgs.follows = "nixpkgs";
+		poetry2nix.inputs.flake-utils.follows = "flake-utils";
+
 		prettier-gohtml-nix.url = "github:diamondburned/prettier-gohtml-nix";
 		prettier-gohtml-nix.inputs.nixpkgs.follows = "nixpkgs";
 		prettier-gohtml-nix.inputs.flake-utils.follows = "flake-utils";
 	};
 
 	outputs =
-		{ self, nixpkgs, flake-utils, gomod2nix, prettier-gohtml-nix }:
+		{ self, nixpkgs, flake-utils, gomod2nix, poetry2nix, prettier-gohtml-nix }:
 
 		flake-utils.lib.eachDefaultSystem (system:
-			with nixpkgs.legacyPackages.${system};
+			let
+				pkgs = nixpkgs.legacyPackages.${system};
+				python = pkgs.python3;
+				packages = self.packages.${system};
+			in
+
+			with pkgs;
 			with gomod2nix.legacyPackages.${system};
-			{
-				packages.default = buildGoApplication {
-					pname = "february-frenzy";
-					version = "git";
+			with poetry2nix.lib.mkPoetry2Nix { inherit pkgs; };
 
-					pwd = ./.;
-					src = ./.;
-					modules = ./gomod2nix.toml;
-
-					preBuild = "go generate ./...";
+			let
+				problemsPoetry = mkPoetryApplication {
+					pname = "march-madness-problems";
 					doCheck = false;
+					projectDir = self;
+					preferWheels = true;
+				};
+			in
 
-					subPackages = [
-						"."
-						"./cmd/competitionctl"
-					];
+			{
+				packages = {
+					server = buildGoApplication {
+						pname = "march-madness-server";
+						version = "git";
+	
+						pwd = ./.;
+						src = ./.;
+						modules = ./gomod2nix.toml;
+	
+						doCheck = false;
+						preBuild = "go generate ./...";
+	
+						subPackages = [
+							"."
+							"./cmd/competitionctl"
+						];
+	
+						nativeBuildInputs = [
+							sqlc
+							dart-sass
+						];
+					};
+					problems = runCommandLocal "march-madness-problems" {
+						buildInputs = [ problemsPoetry.dependencyEnv ];
+					} ''
+						mkdir -p $out/bin
 
-					nativeBuildInputs = [
-						sqlc
-						dart-sass
-					];
+						cd "${problemsPoetry.dependencyEnv}/${problemsPoetry.python.sitePackages}"
+
+						for problem in problems/*/__main__.py; do
+							modulePath="$(dirname $problem)"
+							binaryName="$(basename $modulePath)"
+							module="''${modulePath//\//.}"
+							script="$out/bin/problem-$binaryName"
+
+							echo "#!${runtimeShell}" >> $script
+							echo "exec ${problemsPoetry.dependencyEnv}/bin/python3 -m $module \"\$@\"" >> $script
+
+							chmod +x $script
+						done
+					'';
 				};
 				devShell = mkShell {
+					inputsFrom = [ problemsPoetry ];
+
 					packages = [
 						# Go Tools.
 						go
 						gopls
+						gotools
 						go-tools
 						gomod2nix.packages.${system}.default
 						sqlc
@@ -60,14 +105,10 @@
 						python3
 						python3Packages.black
 						pyright
+						poetry
 					];
 
 					DENO_NO_UPDATE_CHECK = "1"; # Useless in Nix.
-	
-					shellHook = ''
-						python3 -m venv .venv
-						source .venv/bin/activate
-					'';
 				};
 			}
 		);

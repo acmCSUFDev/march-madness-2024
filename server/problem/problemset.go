@@ -51,12 +51,12 @@ func (p *ProblemSet) Problems() []Problem {
 
 // Problem returns the problem at the given index. If the index is accessing a
 // problem that is not available yet, it returns nil.
-func (p *ProblemSet) Problem(i int) Problem {
+func (p *ProblemSet) Problem(i int) *Problem {
 	n := p.AvailableProblems()
 	if i < 0 || i >= n {
 		return nil
 	}
-	return p.problems[i]
+	return &p.problems[i]
 }
 
 // TotalProblems returns the total number of problems in the set.

@@ -12,6 +12,19 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+type HackathonConfig struct {
+	StartTime time.Time       `json:"start_time"`
+	Duration  config.Duration `json:"duration"`
+}
+
+func (c HackathonConfig) EndTime() time.Time {
+	return c.StartTime.Add(c.Duration.Duration())
+}
+
+func (c HackathonConfig) IsOpen(now time.Time) bool {
+	return c.StartTime.Before(now) && c.EndTime().After(now)
+}
+
 func (s *Server) routeHackathon(r chi.Router) {
 	r.Get("/", s.hackathonPage)
 	r.With(s.requireAuth).Post("/submit", s.submitHackathon)
@@ -25,7 +38,7 @@ type hackathonForm struct {
 
 type hackathonPageData struct {
 	frontend.ComponentContext
-	config.HackathonConfig
+	HackathonConfig
 	Submission hackathonForm
 }
 
