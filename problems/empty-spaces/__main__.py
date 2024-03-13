@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+from logging import debug
+import os
 import typing
 from problems import problem_utils
 
@@ -30,10 +32,32 @@ class Problem(problem_utils.Problem):
         )
         self.dist = lambda x1, y1, x2, y2: ((x1 - x2) ** 2 + (y1 - y2) ** 2) ** 0.5
 
+        # Generate the points
+        pts: list[tuple[int, int]] = []
+        while len(pts) < self.consts["NUM_PTS"]:
+            x = self.rand.randint(0, self.consts["GRID_SIZE"][0] - 1)
+            y = self.rand.randint(0, self.consts["GRID_SIZE"][1] - 1)
+
+            valid = True
+            for xx, yy in pts:
+                if self.dist(x, y, xx, yy) < self.consts["MIN_PT_DIST"]:
+                    valid = False
+                    break
+
+            if not valid:
+                continue
+
+            pts.append((x, y))
+            self.grid[x][y] = "x"
+
+            shape = self.rand.choice(["circle", "rectangle", "star"])
+            self.draw_shape(shape, (x, y))
+
     def draw_shape(self, name: str, pt: tuple[int, int]) -> None:
         match name:
             case "circle":
                 radius = self.rand.randint(1, self.consts["CIRC_MAX_RAD"])
+                debug(f"Drawing circle with radius {radius} at {pt}")
                 for i in range(-radius, radius + 1):
                     for j in range(-radius, radius + 1):
                         if (
@@ -45,14 +69,16 @@ class Problem(problem_utils.Problem):
                 length, width = self.rand.randint(
                     2, self.consts["RECT_MAX_DIM"]
                 ), self.rand.randint(5, self.consts["RECT_MAX_DIM"])
-                if self.rand.randint(0, 1):
+                if self.coin_flip(0.5):
                     length, width = width, length
+                debug(f"Drawing rectangle with area {length * width} at {pt}")
                 x, y = pt[0] - length // 2, pt[1] - width // 2
                 for i in range(length):
                     for j in range(width):
                         if self.isin(x + i, y + j):
                             self.grid[x + i][y + j] = "#"
             case "star":
+                debug(f"Drawing star at {pt}")
                 global star_coords
                 for x, y in star_coords:
                     if self.isin(pt[0] + x - 10, pt[1] + y - 10):
@@ -61,24 +87,6 @@ class Problem(problem_utils.Problem):
                 raise ValueError(f"Invalid shape name: {name}")
 
     def generate_input(self, output: typing.IO | None = None):
-        # Generate the points
-        pts: list[tuple[int, int]] = []
-        while len(pts) < self.consts["NUM_PTS"]:
-            x, y = self.rand.randint(
-                0, self.consts["GRID_SIZE"][0] - 1
-            ), self.rand.randint(0, self.consts["GRID_SIZE"][1] - 1)
-            valid = True
-            for xx, yy in pts:
-                if self.dist(x, y, xx, yy) < self.consts["MIN_PT_DIST"]:
-                    valid = False
-                    break
-            if valid:
-                pts.append((x, y))
-                self.grid[x][y] = "x"
-        # Draw the shapes
-        for pt in pts:
-            shape = self.rand.choice(["circle", "rectangle", "star"])
-            self.draw_shape(shape, pt)
         # Write to output file
         for r in self.grid:
             print("".join(r), "".join(r), file=output)
