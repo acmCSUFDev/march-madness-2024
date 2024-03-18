@@ -1,4 +1,5 @@
 {{ template "head" . }}
+{{ template "title" "Week of Code Problems" }}
 
 {{ template "header" . }}
 
@@ -15,7 +16,7 @@
       <mark>1337</mark> score bonus for your team!
     </p>
 
-    {{ if not (eq .Problems.TotalProblems 0) }}
+    {{ if not (eq .Problems.TotalProblems 1) }}
       <ul class="problems">
         {{ $available := .Problems.AvailableProblems }}
         {{ range $i := until .Problems.TotalProblems }}
