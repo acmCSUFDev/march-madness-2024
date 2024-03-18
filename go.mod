@@ -7,6 +7,7 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.3
 	github.com/alecthomas/assert/v2 v2.5.0
 	github.com/dgraph-io/badger/v4 v4.2.0
+	github.com/dustin/go-humanize v1.0.1
 	github.com/go-chi/chi/v5 v5.0.11
 	github.com/go-chi/httplog/v2 v2.0.9
 	github.com/gorilla/schema v1.2.1
@@ -29,7 +30,6 @@ require (
 	github.com/alecthomas/repr v0.3.0 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/dgraph-io/ristretto v0.1.1 // indirect
-	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/golang/glog v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20190702054246-869f871628b6 // indirect
