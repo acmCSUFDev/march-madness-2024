@@ -4,7 +4,7 @@ In preparation for March Madness, our beloved Mr. Marketing Eric Ly has set out 
 
 After getting in touch with the CS department, you've been given a floor plan of the room in which you're allowed to store your supplies. The floor plan is a large text file indicating which spaces are in use already. Here's a portion of one of the floor plans:
 
-![Sample Input](https://github.com/acmCSUFDev/march-madness-2024/assets/104609738/b6b01df8-9e5a-48af-90f6-5c8c5bfbc80a)
+![Sample Input](https://0x0.st/Xrma.png)
 
 If it's too hard to tell from the picture, the floor plan text file consists of the characters `.` and `#`, where a `.` represents an empty space in the room, and the `#` represents a 1m<sup>2</sup> space taken up by something in the room you are not allowed to move. Eric is eager to make sure things go smoothly, so he's asked you to provide him with information about the room you guys have been given.
 
