@@ -2,7 +2,7 @@
 INSERT INTO teams (team_name, invite_code) VALUES (?, ?) RETURNING *;
 
 -- name: JoinTeam :one
-REPLACE INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING *;
+INSERT INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING *;
 
 -- name: LeaveTeam :one
 DELETE FROM team_members WHERE team_name = ? AND user_name = ? RETURNING *;

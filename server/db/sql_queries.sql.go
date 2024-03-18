@@ -239,7 +239,7 @@ func (q *Queries) IsLeader(ctx context.Context, arg IsLeaderParams) (bool, error
 }
 
 const joinTeam = `-- name: JoinTeam :one
-REPLACE INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING team_name, user_name, joined_at, is_leader
+INSERT INTO team_members (team_name, user_name, is_leader) VALUES (?, ?, ?) RETURNING team_name, user_name, joined_at, is_leader
 `
 
 type JoinTeamParams struct {
