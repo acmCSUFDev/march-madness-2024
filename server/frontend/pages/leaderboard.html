@@ -32,7 +32,7 @@
               </th>
               {{ range $j, $_ := (index $table.Points $i) }}
                 <td>
-                  {{ . }}
+                  {{ . | floor }}
                   {{ if eq (index $table.Reasons $j) "week of code" }}
                     <div class="week-of-code-scores">
                       {{ range $k, $p := (index $table.WeekOfCodeSolves $i) }}
