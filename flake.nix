@@ -1,5 +1,5 @@
 {
-  description = "A very basic flake";
+  description = "Flake for March Madness 2024";
 
 	inputs = {
 		nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -43,10 +43,28 @@
 
 			{
 				packages = {
+					default = pkgs.runCommandLocal "march-madness" {
+						nativeBuildInputs = [ makeWrapper ];
+						buildInputs = with self.packages.${system}; [ server problems ];
+						meta = with pkgs.lib; {
+							description = "Executables for March Madness 2024 server and tools";
+							homepage = "https://dev.acmcsuf.com/march-madness-2024";
+							mainProgram = "march-madness";
+						};
+					} ''
+						mkdir -p $out/bin
+
+						# bin/competitionctl
+						ln -s ${packages.server}/bin/competitionctl $out/bin/
+
+						# bin/march-madness
+						makeWrapper \
+							${packages.server}/bin/march-madness-2024 \
+							$out/bin/march-madness \
+								--suffix PATH : ${packages.problems}/bin
+					'';
 					server = buildGoApplication {
-						pname = "march-madness-server";
-						version = "git";
-	
+						name = "march-madness-server";
 						pwd = ./.;
 						src = ./.;
 						modules = ./gomod2nix.toml;
@@ -64,25 +82,7 @@
 							dart-sass
 						];
 					};
-					problems = runCommandLocal "march-madness-problems" {
-						buildInputs = [ problemsPoetry.dependencyEnv ];
-					} ''
-						mkdir -p $out/bin
-
-						cd "${problemsPoetry.dependencyEnv}/${problemsPoetry.python.sitePackages}"
-
-						for problem in problems/*/__main__.py; do
-							modulePath="$(dirname $problem)"
-							binaryName="$(basename $modulePath)"
-							module="''${modulePath//\//.}"
-							script="$out/bin/problem-$binaryName"
-
-							echo "#!${runtimeShell}" >> $script
-							echo "exec ${problemsPoetry.dependencyEnv}/bin/python3 -m $module \"\$@\"" >> $script
-
-							chmod +x $script
-						done
-					'';
+					problems = problemsPoetry.dependencyEnv;
 				};
 				devShell = mkShell {
 					inputsFrom = [ problemsPoetry ];

@@ -1,13 +1,10 @@
-package main
+package config
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 	"time"
-
-	"dev.acmcsuf.com/march-madness-2024/internal/config"
-	"dev.acmcsuf.com/march-madness-2024/server"
 )
 
 type Config struct {
@@ -18,18 +15,18 @@ type Config struct {
 		ProblemsCache string `json:"problems_cache"`
 		SecretKey     string `json:"secret_key"`
 	} `json:"paths"`
-	Problems             ProblemsConfig         `json:"problems"`
-	Hackathon            server.HackathonConfig `json:"hackathon"`
-	OpenRegistrationTime time.Time              `json:"open_registration_time"`
+	Problems             ProblemsConfig  `json:"problems"`
+	Hackathon            HackathonConfig `json:"hackathon"`
+	OpenRegistrationTime time.Time       `json:"open_registration_time"`
 }
 
 type ProblemsConfig struct {
 	Modules  []ProblemModule `json:"modules"`
 	Schedule struct {
-		Start time.Time       `json:"start"`
-		Every config.Duration `json:"every"`
+		Start time.Time `json:"start"`
+		Every Duration  `json:"every"`
 	} `json:"schedule"`
-	Cooldown config.Duration `json:"cooldown"`
+	Cooldown Duration `json:"cooldown"`
 }
 
 type ProblemModule struct {
@@ -37,8 +34,21 @@ type ProblemModule struct {
 	README  string `json:"readme"`
 }
 
-// ParseConfigFile parses the config file at the given path.
-func ParseConfigFile(path string) (*Config, error) {
+type HackathonConfig struct {
+	StartTime time.Time `json:"start_time"`
+	Duration  Duration  `json:"duration"`
+}
+
+func (c HackathonConfig) EndTime() time.Time {
+	return c.StartTime.Add(c.Duration.Duration())
+}
+
+func (c HackathonConfig) IsOpen(now time.Time) bool {
+	return c.StartTime.Before(now) && c.EndTime().After(now)
+}
+
+// ParseFile parses the config file at the given path.
+func ParseFile(path string) (*Config, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open config file: %w", err)

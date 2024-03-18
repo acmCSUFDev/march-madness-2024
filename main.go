@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/signal"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
 	"dev.acmcsuf.com/march-madness-2024/server"
 	"dev.acmcsuf.com/march-madness-2024/server/db"
 	"dev.acmcsuf.com/march-madness-2024/server/problem"
@@ -49,7 +50,7 @@ func run(ctx context.Context) error {
 	logger := slog.New(logOutput)
 	slog.SetDefault(logger)
 
-	config, err := ParseConfigFile(configPath)
+	config, err := config.ParseFile(configPath)
 	if err != nil {
 		return fmt.Errorf("failed to parse config: %w", err)
 	}

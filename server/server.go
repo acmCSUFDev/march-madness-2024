@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"dev.acmcsuf.com/march-madness-2024/internal/config"
 	"dev.acmcsuf.com/march-madness-2024/server/db"
 	"dev.acmcsuf.com/march-madness-2024/server/frontend"
 	"dev.acmcsuf.com/march-madness-2024/server/problem"
@@ -32,7 +33,7 @@ type ServerConfig struct {
 	Problems             *problem.ProblemSet
 	Database             *db.Database
 	Logger               *slog.Logger
-	HackathonConfig      HackathonConfig
+	HackathonConfig      config.HackathonConfig
 	OpenRegistrationTime time.Time
 }
 
