@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/dustin/go-humanize"
 	"github.com/yuin/goldmark"
 	"libdb.so/tmplutil"
 )
@@ -65,6 +66,7 @@ func NewTemplater(fs fs.FS) *tmplutil.Templater {
 							int(d.Seconds())%60)
 					}
 				},
+				"ordinal": humanize.Ordinal,
 			},
 		),
 	}

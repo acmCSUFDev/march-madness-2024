@@ -8,13 +8,21 @@
   <article>
     <hgroup>
       <h2>Week of Code</h2>
-      <p>A new coding problem every day</p>
+      <p>
+        {{ .Problems.StartedAt.Format "Monday, January" }}
+        {{ .Problems.StartedAt.Day | ordinal }}
+        until the
+        {{ .Problems.EndingAt.Day | ordinal }}
+      </p>
     </hgroup>
 
-    <p>
-      Completing at least one part each day will result in a
-      <mark>1337</mark> score bonus for your team!
-    </p>
+    <section>
+      <p>A new coding problem every day!</p>
+      <p>
+        You may get more points for solving problems <b>as soon as they are released</b>, so keep an
+        eye out for the next problem!
+      </p>
+    </section>
 
     {{ if not (eq .Problems.TotalProblems 1) }}
       <ul class="problems">

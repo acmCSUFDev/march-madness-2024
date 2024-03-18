@@ -37,7 +37,12 @@
     <section class="compete">
       <hgroup>
         <h2>Week of Code</h2>
-        <p>Monday, February 19th until 23rd</p>
+        <p>
+          {{ .Problems.StartedAt.Format "Monday, January" }}
+          {{ .Problems.StartedAt.Day | ordinal }}
+          until the
+          {{ .Problems.EndingAt.Day | ordinal }}
+        </p>
       </hgroup>
       <p>
         A week of coding challenges designed and curated by ACM to promote good problem-solving
@@ -58,7 +63,12 @@
     <section>
       <hgroup>
         <h2>Mini Hackathon</h2>
-        <p>Monday, February 23rd at ??? in CS ???</p>
+        <p>
+          {{ .HackathonConfig.StartTime.Format "Monday, January" }}
+          {{ .HackathonConfig.StartTime.Day | ordinal }}
+          in
+          {{ .HackathonConfig.Location }}
+        </p>
       </hgroup>
 
       <p>

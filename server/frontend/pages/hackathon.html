@@ -13,12 +13,18 @@
     <hgroup>
       <h1>Mini Hackathon</h1>
       <p>
-        <b>Think</b>, <b>create</b> and <b>present</b> at this mini hackathon geared towards
-        beginners
+        {{ .StartTime.Format "Monday, January" }}
+        {{ .StartTime.Day | ordinal }}
+        in
+        {{ .Location }}
       </p>
     </hgroup>
 
     <section>
+      <p>
+        <b>Think</b>, <b>create</b> and <b>present</b> at this mini Hackathon geared towards
+        beginners.
+      </p>
       <p><strong>Move quickly, you've only got 2 hours!</strong></p>
     </section>
 

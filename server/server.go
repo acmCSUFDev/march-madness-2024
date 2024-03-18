@@ -109,7 +109,9 @@ func writeError(w http.ResponseWriter, code int, err error) {
 
 type indexPageData struct {
 	frontend.ComponentContext
-	InviteCode string
+	Problems        *problem.ProblemSet
+	HackathonConfig config.HackathonConfig
+	InviteCode      string
 }
 
 func (s *Server) index(w http.ResponseWriter, r *http.Request) {
@@ -130,7 +132,9 @@ func (s *Server) index(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
-		InviteCode: inviteCode,
+		Problems:        s.problems,
+		HackathonConfig: s.config.HackathonConfig,
+		InviteCode:      inviteCode,
 	})
 }
 

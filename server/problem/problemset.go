@@ -44,6 +44,15 @@ func (p *ProblemSet) StartedAt() time.Time {
 	return p.schedule.StartReleaseAt
 }
 
+// EndingAt returns the time at which the last problem is released. If the
+// problem set does not have a release schedule, it returns the zero time.
+func (p *ProblemSet) EndingAt() time.Time {
+	if p.schedule == nil {
+		return time.Time{}
+	}
+	return p.schedule.StartReleaseAt.Add(time.Duration(len(p.problems)) * p.schedule.ReleaseEvery)
+}
+
 // Problems returns all available problems in the set.
 func (p *ProblemSet) Problems() []Problem {
 	return p.problems[:p.AvailableProblems()]

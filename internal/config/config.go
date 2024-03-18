@@ -37,6 +37,7 @@ type ProblemModule struct {
 type HackathonConfig struct {
 	StartTime time.Time `json:"start_time"`
 	Duration  Duration  `json:"duration"`
+	Location  string    `json:"location"`
 }
 
 func (c HackathonConfig) EndTime() time.Time {
