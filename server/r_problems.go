@@ -45,7 +45,7 @@ type problemPageData struct {
 	frontend.ComponentContext
 	Problem       *problem.Problem
 	Day           problemDay
-	PointsPerPart int
+	PointsPerPart float64
 	SolvedPart1   bool
 	SolvedPart2   bool
 }
@@ -221,7 +221,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 			if correct {
 				_, err = s.database.AddPoints(ctx, db.AddPointsParams{
 					TeamName: u.TeamName,
-					Points:   problem.PointsPerPart,
+					Points:   problem.ScalePoints(now, s.problems.ProblemStartTime(day.index())),
 					Reason:   "week of code",
 				})
 				if err != nil {

@@ -20,10 +20,6 @@ import (
 	badgeropts "github.com/dgraph-io/badger/v4/options"
 )
 
-// PointsPerPart is the number of points awarded for solving a part of a
-// problem.
-const PointsPerPart = 100
-
 // Problem is a problem that can be solved.
 type Problem struct {
 	// ID returns the unique ID of the problem.

@@ -68,6 +68,18 @@ func (p *ProblemSet) Problem(i int) *Problem {
 	return &p.problems[i]
 }
 
+// ProblemStartTime calculates the time at which the problem at the given index
+// was released. If the problem set does not have a release schedule, it returns
+// the zero time.
+func (p *ProblemSet) ProblemStartTime(i int) time.Time {
+	if p.schedule == nil {
+		return time.Time{}
+	}
+	start := p.schedule.StartReleaseAt
+	delta := time.Duration(i) * p.schedule.ReleaseEvery
+	return start.Add(delta)
+}
+
 // TotalProblems returns the total number of problems in the set.
 func (p *ProblemSet) TotalProblems() int {
 	return len(p.problems)

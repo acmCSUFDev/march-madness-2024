@@ -39,15 +39,17 @@
               {{ else }}
                 <strong class="primary">You've solved both parts!</strong>
               {{ end }}
+              <!--
               This nets you a total of
               <strong class="primary">
                 {{ if and .SolvedPart1 (not .SolvedPart2) }}
-                  {{ .PointsPerPart }}
-                {{ else }}
-                  {{ mul .PointsPerPart 2 }}
-                {{ end }}
+                {{ .PointsPerPart }}
+              {{ else }}
+                {{ mul .PointsPerPart 2 }}
+              {{ end }}
               </strong>
               points.
+              -->
             </p>
           {{ end }}
 
