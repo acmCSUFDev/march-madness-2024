@@ -115,9 +115,10 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := s.database.Tx(func(q *db.Queries) error {
+	err := s.database.Tx(func(q *db.Queries) (err error) {
+		var isLeader bool
 		if isAuthenticated {
-			isLeader, err := q.IsLeader(ctx, db.IsLeaderParams{
+			isLeader, err = q.IsLeader(ctx, db.IsLeaderParams{
 				TeamName: u.TeamName,
 				Username: u.Username,
 			})
@@ -128,7 +129,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 				return fmt.Errorf("you cannot leave your own team")
 			}
 
-			_, err = q.LeaveTeam(ctx, db.LeaveTeamParams{
+			err = q.LeaveTeam(ctx, db.LeaveTeamParams{
 				TeamName: u.TeamName,
 				Username: u.Username,
 			})
@@ -137,7 +138,6 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 
-		var isLeader bool
 		if data.TeamCode != "" {
 			t, err := q.FindTeamWithInviteCode(ctx, data.TeamCode)
 			if err != nil {
@@ -155,7 +155,7 @@ func (s *Server) join(w http.ResponseWriter, r *http.Request) {
 			isLeader = true
 		}
 
-		_, err := q.JoinTeam(ctx, db.JoinTeamParams{
+		_, err = q.JoinTeam(ctx, db.JoinTeamParams{
 			TeamName: data.TeamName,
 			Username: data.Username,
 			IsLeader: isLeader,

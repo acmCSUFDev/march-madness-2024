@@ -279,8 +279,8 @@ func (q *Queries) LastSubmissionTime(ctx context.Context, arg LastSubmissionTime
 	return submitted_at, err
 }
 
-const leaveTeam = `-- name: LeaveTeam :one
-DELETE FROM team_members WHERE team_name = ? AND user_name = ? RETURNING team_name, user_name, joined_at, is_leader
+const leaveTeam = `-- name: LeaveTeam :exec
+DELETE FROM team_members WHERE team_name = ? AND user_name = ?
 `
 
 type LeaveTeamParams struct {
@@ -288,16 +288,9 @@ type LeaveTeamParams struct {
 	Username string
 }
 
-func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) (TeamMember, error) {
-	row := q.queryRow(ctx, q.leaveTeamStmt, leaveTeam, arg.TeamName, arg.Username)
-	var i TeamMember
-	err := row.Scan(
-		&i.TeamName,
-		&i.Username,
-		&i.JoinedAt,
-		&i.IsLeader,
-	)
-	return i, err
+func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) error {
+	_, err := q.exec(ctx, q.leaveTeamStmt, leaveTeam, arg.TeamName, arg.Username)
+	return err
 }
 
 const listAllCorrectSubmissions = `-- name: ListAllCorrectSubmissions :many
