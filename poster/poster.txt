@@ -1,0 +1,39 @@
+                          ACM at CSUF presents...
+ 
+             ░█▄█░█▀█░█▀▄░█▀▀░█░█░░░█▄█░█▀█░█▀▄░█▀█░█▀▀░█▀▀░█▀▀
+             ░█░█░█▀█░█▀▄░█░░░█▀█░░░█░█░█▀█░█░█░█░█░█▀▀░▀▀█░▀▀█
+             ░▀░▀░▀░▀░▀░▀░▀▀▀░▀░▀░░░▀░▀░▀░▀░▀▀░░▀░▀░▀▀▀░▀▀▀░▀▀▀
+ 
+                          March 18th -> March 22th
+ 
+ 
+ +--------------+                                      +-------------------+
+ |              |                                      |                   |
+ |    Monday    +--->         Opening Day!!            |   Create teams    |
+ |              |           Coding Challenge 1         |  and compete in   |
+ +--------------+                                      |   a series of     |
+                                                       |   fun events!     |
+ +--------------+                                      |                   |
+ |              |                                      |  Your team can    |
+ |   Tuesday    +--->      Coding Challenge 2          |  can earn points  |
+ |   (π day)    |                                      |    to top the     |
+ +--------------+                                      |   leaderboard!    |
+                                                       |                   |
+ +--------------+                                      +-------------------+
+ |              |            MINI HACKATHON
+ |   Wednesday  +--->   (EC 063 from 3pm to 6pm)
+ |              |                  +               +-----------------------+
+ +--------------+          Coding Challenge 3      |                       |
+                                                   |  Sign up now!         |
+ +--------------+                                  |                       |
+ |              |                                  |  madness.acmcsuf.com  |
+ |   Thursday   +--->      Coding Challenge 4      |                       |
+ |              |                                  +-----------------------+
+ +--------------+
+                                                   +-----------------------+
+ +--------------+                                  |  All of the coding    |
+ |              |         GUESSTIMATION CONTEST    |  challenges will be   |
+ |    Friday    +--->   (CS 300 from 4pm to 7pm)   |  online!              |
+ |   (Finale!)  |                  +               +-----------------------+
+ +--------------+          Coding Challenge 5
+
