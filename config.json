@@ -18,16 +18,24 @@
       {
         "cmd": "python3 -m problems.crafting",
         "readme": "./problems/crafting/README.md"
+      },
+      {
+        "cmd": "false",
+        "readme": "./problems/_placeholder/README.md"
+      },
+      {
+        "cmd": "false",
+        "readme": "./problems/_placeholder/README.md"
       }
     ],
     "schedule": {
-      "start": "2024-03-12T00:00:00-08:00",
-      "every": "24h"
+      "start": "2024-03-17T00:00:00-08:00",
+      "every": "1h"
     }
   },
   "hackathon": {
-    "start_time": "2024-03-16T00:00:00-08:00",
-    "duration": "48h"
+    "start_time": "2024-03-20T00:15:00-08:00",
+    "duration": "150m"
   },
-  "open_registration_time": "2024-03-12T00:00:00-08:00"
+  "open_registration_time": "2024-03-17T00:00:00-08:00"
 }
