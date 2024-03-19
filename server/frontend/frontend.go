@@ -10,6 +10,7 @@ import (
 
 	"github.com/Masterminds/sprig/v3"
 	"github.com/dustin/go-humanize"
+	"github.com/dustin/go-humanize/english"
 	"github.com/yuin/goldmark"
 	"libdb.so/tmplutil"
 )
@@ -66,7 +67,42 @@ func NewTemplater(fs fs.FS) *tmplutil.Templater {
 							int(d.Seconds())%60)
 					}
 				},
+				"humanizeDuration": func(d time.Duration) string {
+					plural0 := func(n int, singular, plural string) string {
+						if n == 0 {
+							return ""
+						}
+						return english.Plural(n, singular, plural)
+					}
+
+					join := func(s ...string) string {
+						ss := s[:0]
+						for _, v := range s {
+							if v != "" {
+								ss = append(ss, v)
+							}
+						}
+						return strings.Join(ss, " ")
+					}
+
+					switch {
+					case d < time.Second:
+						return "now"
+					case d < time.Minute:
+						return plural0(int(d.Seconds()), "second", "seconds")
+					case d < time.Hour:
+						return join(
+							plural0(int(d.Minutes()), "minute", "minutes"),
+							plural0(int(d.Seconds())%60, "second", "seconds"))
+					default:
+						return join(
+							plural0(int(d.Hours()), "hour", "hours"),
+							plural0(int(d.Minutes())%60, "minute", "minutes"),
+							plural0(int(d.Seconds())%60, "second", "seconds"))
+					}
+				},
 				"ordinal": humanize.Ordinal,
+				"plural":  english.Plural,
 			},
 		),
 	}

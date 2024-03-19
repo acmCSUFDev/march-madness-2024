@@ -35,6 +35,12 @@ func NewProblemSetWithSchedule(problems []Problem, schedule *ProblemReleaseSched
 	}
 }
 
+// Schedule returns the release schedule of the problem set. If the problem set
+// does not have a release schedule, it returns nil.
+func (p *ProblemSet) Schedule() *ProblemReleaseSchedule {
+	return p.schedule
+}
+
 // StartedAt returns the time at which the first problem is released. If the
 // problem set does not have a release schedule, it returns the zero time.
 func (p *ProblemSet) StartedAt() time.Time {

@@ -49,8 +49,11 @@
         skills.
       </p>
       <p>
-        A new problem opens everyday at midnight (PST). Solve problems online or in-person with your
-        team!
+        {{ if .Problems.Schedule }}
+          A new problem opens up every
+          <b>{{ humanizeDuration .Problems.Schedule.ReleaseEvery }}</b>.
+        {{ end }}
+        Solve problems online or in-person with your team!
       </p>
 
       <div class="grid">
