@@ -89,7 +89,7 @@ class Problem(problem_utils.Problem):
     def generate_input(self, output: typing.IO | None = None):
         # Write to output file
         for r in self.grid:
-            print("".join(r), "".join(r), file=output)
+            print("".join(r), file=output)
 
     # Return the number of empty '.' in the grid
     def part1_answer(self):
