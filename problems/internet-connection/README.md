@@ -10,14 +10,14 @@ Router located at x=4, y=7 with reach=3ft
 Router located at x=6, y=4 with reach=4ft
 Router located at x=10, y=10 with reach=3ft
 ```
-Imagining the campus as a grid on a cartesian plane, we can picture where the routers are. Unfortunately for us however, the school cheaped out when buying routers. They opted for a large
+Imagining the campus as a grid on a cartesian plane, we can picture where the routers are. Unfortunately for us, however, the school cheaped out when buying routers. They opted for a large
 quantity of routers with bad service, but long range.
 
-A single router is not enough for a student to maintain a stable connection. To combat this while remaining cost effective, the school has implemented a system where two routers can help boost
-each others signals and offer a student a stable connection! 
+A single router is not enough for a student to maintain a stable connection. To combat this while remaining cost-effective, the school has implemented a system where two routers can help boost
+each other's signals and offer a student a stable connection! 
 
-Now, if a student is within range of two different routers at once, their connection will be more than enough to do sustain any activities they may try. Our goal is to ensure that every
-student has a stable connection for this hackathon, so we will only look for areas that are in range of 2 different routers to try and place them there.
+Now, if a student is within range of two different routers at once, their connection will be more than enough to sustain any activities they may try. Our goal is to ensure that every
+student has a stable connection for this hackathon, so we will only look for areas that are in the range of 2 different routers to try and place them there.
 
 ## Part 1
 
@@ -25,5 +25,5 @@ Given the long list of routers, **how many pairs of routers offer an area of any
 
 ## Part 2
 
-To avoid scattering students all over campus in search of good internet connection, we have to optimize our space. We have all the spaces where students have a good internet connection now,
+To avoid scattering students all over campus in search of a good internet connection, we have to optimize our space. We have all the spaces where students have a good internet connection now,
 we just need to figure out where the students should go. **What is the largest area of overlap that any pair of routers creates?**
