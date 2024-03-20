@@ -15,6 +15,8 @@
       <p>
         {{ .StartTime.Format "Monday, January" }}
         {{ .StartTime.Day | ordinal }}
+        at
+        {{ .StartTime.Format "3:04 PM" }}
         in
         {{ .Location }}
       </p>
@@ -26,6 +28,10 @@
         beginners.
       </p>
       <p><strong>Move quickly, you've only got 2 hours!</strong></p>
+      <p>
+        There will be one <mark>grand prize</mark> for the best project as well as
+        <mark>400 bonus points</mark> awarded to the one winner of each category.
+      </p>
     </section>
 
     <section class="theme">
@@ -62,96 +68,102 @@
     </section>
 
     <section>
-      {{ if .IsOpen now }}
-        <p class="countdown">
-          <strong>Submissions are open for</strong>
-          <time class="countdown-clock" datetime="{{ rfc3339 .EndTime }}">
-            {{ .EndTime.Sub now | formatDuration }}
-          </time>
-        </p>
+      {{ if .IsAuthenticated }}
+        {{ if .IsOpen now }}
+          <p class="countdown">
+            <strong>Submissions are open for</strong>
+            <time class="countdown-clock" datetime="{{ rfc3339 .EndTime }}">
+              {{ .EndTime.Sub now | formatDuration }}
+            </time>
+          </p>
 
-        <form id="submit-form" action="/hackathon/submit" method="post">
-          <label>
-            GitHub Repo:
-            <input type="text" name="project_url" value="{{ .Submission.ProjectURL }}" required />
-          </label>
-          <label>
-            Project Description <small>(optional)</small>:
-            <textarea name="project_description">{{ .Submission.ProjectDescription }}</textarea>
-          </label>
-          <label>
-            Category:
+          <form id="submit-form" action="/hackathon/submit" method="post">
             <label>
-              <input
-                type="radio"
-                name="category"
-                value="interactive"
-                {{ if eq .Submission.Category "interactive" }}
-                  checked
-                {{ end }}
-              />
-              Interactive
+              GitHub Repo:
+              <input type="text" name="project_url" value="{{ .Submission.ProjectURL }}" required />
             </label>
             <label>
-              <input
-                type="radio"
-                name="category"
-                value="lazy"
-                {{ if eq .Submission.Category "lazy" }}
-                  checked
-                {{ end }}
-              />
-              For the lazy
+              Project Description <small>(optional, keep it short!)</small>:
+              <textarea name="project_description">{{ .Submission.ProjectDescription }}</textarea>
             </label>
             <label>
-              <input
-                type="radio"
-                name="category"
-                value="otherworldly"
-                {{ if eq .Submission.Category "otherworldly" }}
-                  checked
-                {{ end }}
-              />
-              Otherworldly
+              Category:
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="interactive"
+                  {{ if eq .Submission.Category "interactive" }}
+                    checked
+                  {{ end }}
+                />
+                Interactive
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="lazy"
+                  {{ if eq .Submission.Category "lazy" }}
+                    checked
+                  {{ end }}
+                />
+                For the lazy
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="otherworldly"
+                  {{ if eq .Submission.Category "otherworldly" }}
+                    checked
+                  {{ end }}
+                />
+                Otherworldly
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="category"
+                  value="non-ai"
+                  {{ if eq .Submission.Category "non-ai" }}
+                    checked
+                  {{ end }}
+                />
+                Non-AI
+              </label>
             </label>
-            <label>
-              <input
-                type="radio"
-                name="category"
-                value="non-ai"
-                {{ if eq .Submission.Category "non-ai" }}
-                  checked
+            <div class="grid" style="margin-top: var(--spacing)">
+              <button
+                type="submit"
+                {{ if .Submission.ProjectURL }}
+                  class="secondary"
                 {{ end }}
-              />
-              Non-AI
-            </label>
-          </label>
-          <div class="grid" style="margin-top: var(--spacing)">
-            <button
-              type="submit"
-              {{ if .Submission.ProjectURL }}
-                class="secondary"
+              >
+                {{ if .Submission.ProjectURL }}
+                  Re-submit
+                {{ else }}
+                  Submit
+                {{ end }}
+              </button>
+            </div>
+          </form>
+        {{ else }}
+          <div class="grid">
+            <button disabled class="outline">
+              {{ if .StartTime.After now }}
+                Submissions will be available once the event begins.
               {{ end }}
-            >
-              {{ if .Submission.ProjectURL }}
-                Re-submit
-              {{ else }}
-                Submit
+              {{ if .EndTime.Before now }}
+                Submissions are closed.
               {{ end }}
             </button>
           </div>
-        </form>
+        {{ end }}
       {{ else }}
-        <div class="grid">
-          <button disabled class="outline">
-            {{ if .StartTime.After now }}
-              Submissions will be available once the event begins.
-            {{ end }}
-            {{ if .EndTime.Before now }}
-              Submissions are closed.
-            {{ end }}
-          </button>
-        </div>
+        <blockquote class="warn-login">
+          You must <a href="/join">join or create a team</a> to submit a project!
+        </blockquote>
       {{ end }}
     </section>
   </article>

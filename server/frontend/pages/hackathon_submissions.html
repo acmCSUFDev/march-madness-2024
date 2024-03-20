@@ -1,0 +1,54 @@
+{{ template "head" }}
+{{ template "title" "Hackathon Submissions" }}
+
+{{ template "header" . }}
+
+
+<main class="container" id="hackathon-submissions">
+  <article>
+    <header>
+      <h1>Hackathon Submissions</h1>
+    </header>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Team</th>
+          <th>Category</th>
+          <th>URL</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{ range .Submissions }}
+          <tr>
+            <td class="team-name">{{ .TeamName }}</td>
+            <td class="category">
+              {{ if .Category | eq "interactive" }}
+                Interactive
+              {{ else if .Category | eq "lazy" }}
+                For the Lazy
+              {{ else if .Category | eq "otherworldly" }}
+                Otherworldly
+              {{ else if .Category | eq "non-ai" }}
+                Non-AI
+              {{ else }}
+                {{ .Category }}
+              {{ end }}
+            </td>
+            <td class="project-url">
+              <a href="{{ .ProjectUrl }}" target="_blank">
+                {{ .ProjectUrl | splitList "/" | last }}
+              </a>
+            </td>
+            <td class="project-description">
+              {{- .ProjectDescription.String | abbrev 500 | md -}}
+            </td>
+          </tr>
+        {{ end }}
+      </tbody>
+    </table>
+  </article>
+</main>
+
+{{ template "footer" . }}

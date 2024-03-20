@@ -65,3 +65,44 @@
   }
   margin-bottom: var(--spacing);
 }
+
+#hackathon-submissions {
+  table {
+    th {
+      font-weight: bold;
+      color: var(--primary);
+    }
+
+    th,
+    td {
+      padding: calc(var(--spacing) / 2);
+      vertical-align: top;
+    }
+
+    @mixin ellipsize {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .team-name {
+      @include ellipsize;
+      max-width: 10em;
+    }
+
+    .project-url {
+      @include ellipsize;
+      max-width: 6em;
+    }
+
+    .project-description {
+      p {
+        margin-bottom: calc(var(--spacing) / 2);
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+      }
+    }
+  }
+}

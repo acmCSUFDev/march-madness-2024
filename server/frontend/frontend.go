@@ -24,6 +24,10 @@ type ComponentContext struct {
 	Username string
 }
 
+func (c ComponentContext) IsAuthenticated() bool {
+	return c.TeamName != ""
+}
+
 // Markdown is a goldmark instance.
 var Markdown = goldmark.New()
 

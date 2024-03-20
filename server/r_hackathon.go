@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"net/http"
 	"slices"
+	"strings"
 	"time"
 
 	"dev.acmcsuf.com/march-madness-2024/internal/config"
@@ -14,6 +15,7 @@ import (
 
 func (s *Server) routeHackathon(r chi.Router) {
 	r.Get("/", s.hackathonPage)
+	r.Get("/submissions", s.listHackathonSubmissions)
 	r.With(s.requireAuth).Post("/submit", s.submitHackathon)
 }
 
@@ -86,6 +88,10 @@ func (s *Server) submitHackathon(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !strings.HasPrefix(submission.ProjectURL, "https://") {
+		submission.ProjectURL = "https://" + submission.ProjectURL
+	}
+
 	if err := s.database.SetHackathonSubmission(ctx, db.SetHackathonSubmissionParams{
 		TeamName:   u.TeamName,
 		ProjectUrl: submission.ProjectURL,
@@ -102,5 +108,28 @@ func (s *Server) submitHackathon(w http.ResponseWriter, r *http.Request) {
 	s.renderTemplate(w, "hackathon_submitted", frontend.ComponentContext{
 		Username: u.Username,
 		TeamName: u.TeamName,
+	})
+}
+
+type hackathonSubmissionsPageData struct {
+	frontend.ComponentContext
+	Submissions []db.HackathonSubmission
+}
+
+func (s *Server) listHackathonSubmissions(w http.ResponseWriter, r *http.Request) {
+	u := getAuthentication(r)
+
+	submissions, err := s.database.HackathonSubmissions(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	s.renderTemplate(w, "hackathon_submissions", hackathonSubmissionsPageData{
+		ComponentContext: frontend.ComponentContext{
+			Username: u.Username,
+			TeamName: u.TeamName,
+		},
+		Submissions: submissions,
 	})
 }
