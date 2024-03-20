@@ -20,8 +20,8 @@
         "readme": "./problems/crafting/README.md"
       },
       {
-        "cmd": "false",
-        "readme": "./problems/_placeholder/README.md"
+        "cmd": "python3 -m problems.internet-connection",
+        "readme": "./problems/internet-connection/README.md"
       },
       {
         "cmd": "false",
