@@ -69,7 +69,7 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 		table.Teams = append(table.Teams, row.TeamName)
 	}
 
-	table.Reasons = []string{"week of code", "hackathon"}
+	table.Reasons = []string{"week of code", "hackathon", "guesstimation"}
 	table.Teams = slices.Compact(table.Teams)
 
 	table.TeamMembers = make([][]string, len(table.Teams))
