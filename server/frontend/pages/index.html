@@ -69,6 +69,8 @@
         <p>
           {{ .HackathonConfig.StartTime.Format "Monday, January" }}
           {{ .HackathonConfig.StartTime.Day | ordinal }}
+          at
+          {{ .HackathonConfig.StartTime.Format "3:04 PM" }}
           in
           {{ .HackathonConfig.Location }}
         </p>
