@@ -98,8 +98,8 @@ class Problem(problem_utils.Problem):
     # Return the number of spots in the grid where we can fit a 15x15 square
     def part2_answer(self):
         ans = 0
-        for i in range(self.consts["GRID_SIZE"][0] - 15):
-            for j in range(self.consts["GRID_SIZE"][1] - 15):
+        for i in range(self.consts["GRID_SIZE"][0] - 14):
+            for j in range(self.consts["GRID_SIZE"][1] - 14):
                 valid = True
                 for x in range(15):
                     for y in range(15):
