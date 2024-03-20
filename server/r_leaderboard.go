@@ -91,7 +91,8 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 			s.logger.WarnContext(ctx,
 				"leaderboard: unexpected team or reason",
 				"team", row.TeamName,
-				"reason", row.Reason)
+				"reason", row.Reason.String,
+				"points", row.Points.Float64)
 		}
 	}
 
