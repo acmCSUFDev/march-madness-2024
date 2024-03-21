@@ -35,7 +35,7 @@ class Problem(problem_utils.Problem):
         
     def generate_input(self, output: typing.IO | None = None):
         for pt, r in zip(self.pts, self.radii):
-            print(f"Router located at x={pt[0]}, y={pt[1]} with reach={r}ft\n", file=output)
+            print(f"Router located at x={pt[0]}, y={pt[1]} with reach={r}ft", file=output)
 
     # Return the # of pairs of circles that intersect
     def part1_answer(self):
