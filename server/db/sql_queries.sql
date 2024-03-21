@@ -58,7 +58,7 @@ SELECT
 		added_at,
 		SUM(points) AS points
 	FROM team_points
-	GROUP BY team_name
+	GROUP BY team_name, added_at
 	ORDER BY added_at ASC;
 
 -- name: ListTeams :many
