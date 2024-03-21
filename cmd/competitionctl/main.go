@@ -3,10 +3,10 @@ package main
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"go/doc/comment"
 	"log"
+	"math"
 	"os"
 	"os/signal"
 	"slices"
@@ -279,13 +279,9 @@ func pointsList(ctx Context) error {
 		return fmt.Errorf("failed to get points: %w", err)
 	}
 	for _, pt := range points {
-		fmt.Printf("%v: %s, %s: %.0f\n", pt.AddedAt.In(time.Local), pt.Reason, pt.TeamName, pt.Points)
+		fmt.Printf(
+			"%v: %s +%f\n",
+			pt.AddedAt.In(time.Local), pt.TeamName, math.Floor(pt.Points.Float64))
 	}
 	return nil
-}
-
-func dumpAsJSON(v any) error {
-	enc := json.NewEncoder(os.Stdout)
-	enc.SetIndent("", "  ")
-	return enc.Encode(v)
 }
