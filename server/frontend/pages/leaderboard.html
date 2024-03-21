@@ -15,9 +15,7 @@
         <thead>
           <tr>
             <th>team</th>
-            {{ range $table.Reasons }}
-              <th>{{ . }}</th>
-            {{ end }}
+            <th>points</th>
           </tr>
         </thead>
         <tbody>
@@ -30,26 +28,28 @@
                 >
                 <small>({{ len $members }})</small>
               </th>
-              {{ range $j, $_ := (index $table.Points $i) }}
-                <td>
-                  {{ . | floor }}
-                  {{ if eq (index $table.Reasons $j) "week of code" }}
-                    <div class="week-of-code-scores">
-                      {{ range $k, $p := (index $table.WeekOfCodeSolves $i) }}
-                        {{ $day := add $k 1 }}
-                        <span class="day" data-day="{{ $day }}">
-                          <span class="part {{ if ge $p 1 }}solved{{ end }}">
-                            Day {{ $day }} Part 1 solved.
-                          </span>
-                          <span class="part {{ if ge $p 2 }}solved{{ end }}">
-                            Day {{ $day }} Part 2 solved.
-                          </span>
-                        </span>
-                      {{ end }}
-                    </div>
+              <td>
+                <span
+                  {{ if not (eq 0.0 (index $table.Totals $i)) }}
+                    data-tooltip="{{ $table.TeamPointsTooltip $i }}" data-placement="left"
                   {{ end }}
-                </td>
-              {{ end }}
+                >
+                  <span class="points">{{ index $table.Totals $i | floor }}</span>
+                </span>
+                <div class="week-of-code-scores">
+                  {{ range $k, $p := (index $table.WeekOfCodeSolves $i) }}
+                    {{ $day := add $k 1 }}
+                    <span class="day" data-day="{{ $day }}">
+                      <span class="part {{ if ge $p 1 }}solved{{ end }}">
+                        Day {{ $day }} Part 1 solved.
+                      </span>
+                      <span class="part {{ if ge $p 2 }}solved{{ end }}">
+                        Day {{ $day }} Part 2 solved.
+                      </span>
+                    </span>
+                  {{ end }}
+                </div>
+              </td>
             </tr>
           {{ end }}
         </tbody>

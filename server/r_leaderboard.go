@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"net/http"
 	"slices"
 	"strings"
@@ -26,8 +27,18 @@ type leaderboardTeamPointsTable struct {
 	Reasons          []string
 	Teams            []string
 	TeamMembers      [][]string
+	Totals           []float64
 	Points           [][]float64
 	WeekOfCodeSolves [][]int8 // list of teams, each containing N days
+}
+
+func (t leaderboardTeamPointsTable) TeamPointsTooltip(teamIx int) string {
+	pts := t.Points[teamIx]
+	vals := make([]string, len(t.Reasons))
+	for i, p := range pts {
+		vals[i] = fmt.Sprintf("%s: %.0f", t.Reasons[i], p)
+	}
+	return strings.Join(vals, ", ")
 }
 
 type leaderboardTeamPointsEvent struct {
@@ -94,6 +105,15 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 				"reason", row.Reason.String,
 				"points", row.Points.Float64)
 		}
+	}
+
+	table.Totals = make([]float64, len(table.Teams))
+	for i, pts := range table.Points {
+		var sum float64
+		for _, p := range pts {
+			sum += p
+		}
+		table.Totals[i] = sum
 	}
 
 	weekOfCodeSolves, err := s.database.ListAllCorrectSubmissions(ctx)

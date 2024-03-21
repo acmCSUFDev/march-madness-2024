@@ -21,11 +21,15 @@
       padding-bottom: calc(var(--spacing) * 0.75);
     }
 
-    td {
+    td .points {
       font-family: $code-font-family;
       font-weight: $code-font-weight;
       font-size: 1.15em;
       @include highlight-glow;
+    }
+
+    tr > :nth-child(2) {
+      max-width: 4em;
     }
 
     .week-of-code-scores {
@@ -42,7 +46,6 @@
         flex: 1;
         min-width: 5px;
         max-width: 20px;
-        margin-top: -2px;
 
         display: flex;
         flex-direction: column;
