@@ -53,7 +53,13 @@ SELECT
 	ORDER BY COALESCE(SUM(team_points.points), 0) DESC;
 
 -- name: TeamPointsHistory :many
-SELECT * FROM team_points ORDER BY added_at ASC;
+SELECT
+		team_name,
+		added_at,
+		SUM(points) AS points
+	FROM team_points
+	GROUP BY team_name
+	ORDER BY added_at ASC;
 
 -- name: ListTeams :many
 SELECT team_name, created_at, accepting_members FROM teams;

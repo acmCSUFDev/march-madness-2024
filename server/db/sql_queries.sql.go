@@ -637,24 +637,31 @@ func (q *Queries) TeamPoints(ctx context.Context) ([]TeamPointsRow, error) {
 }
 
 const teamPointsHistory = `-- name: TeamPointsHistory :many
-SELECT team_name, added_at, points, reason FROM team_points ORDER BY added_at ASC
+SELECT
+		team_name,
+		added_at,
+		SUM(points) AS points
+	FROM team_points
+	GROUP BY team_name
+	ORDER BY added_at ASC
 `
 
-func (q *Queries) TeamPointsHistory(ctx context.Context) ([]TeamPoint, error) {
+type TeamPointsHistoryRow struct {
+	TeamName string
+	AddedAt  time.Time
+	Points   sql.NullFloat64
+}
+
+func (q *Queries) TeamPointsHistory(ctx context.Context) ([]TeamPointsHistoryRow, error) {
 	rows, err := q.query(ctx, q.teamPointsHistoryStmt, teamPointsHistory)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []TeamPoint
+	var items []TeamPointsHistoryRow
 	for rows.Next() {
-		var i TeamPoint
-		if err := rows.Scan(
-			&i.TeamName,
-			&i.AddedAt,
-			&i.Points,
-			&i.Reason,
-		); err != nil {
+		var i TeamPointsHistoryRow
+		if err := rows.Scan(&i.TeamName, &i.AddedAt, &i.Points); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

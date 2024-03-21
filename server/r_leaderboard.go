@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"math"
 	"net/http"
 	"slices"
 	"strings"
@@ -36,7 +37,7 @@ func (t leaderboardTeamPointsTable) TeamPointsTooltip(teamIx int) string {
 	pts := t.Points[teamIx]
 	vals := make([]string, len(t.Reasons))
 	for i, p := range pts {
-		vals[i] = fmt.Sprintf("%s: %.0f", t.Reasons[i], p)
+		vals[i] = fmt.Sprintf("%s: %.0f", t.Reasons[i], math.Floor(p))
 	}
 	return strings.Join(vals, ", ")
 }
@@ -44,7 +45,6 @@ func (t leaderboardTeamPointsTable) TeamPointsTooltip(teamIx int) string {
 type leaderboardTeamPointsEvent struct {
 	TeamName string    `json:"team_name"`
 	AddedAt  time.Time `json:"added_at"`
-	Reason   string    `json:"reason"`
 	Points   float64   `json:"points"`
 }
 
@@ -150,8 +150,7 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 		events = append(events, leaderboardTeamPointsEvent{
 			TeamName: row.TeamName,
 			AddedAt:  row.AddedAt,
-			Reason:   row.Reason,
-			Points:   row.Points,
+			Points:   row.Points.Float64,
 		})
 	}
 
