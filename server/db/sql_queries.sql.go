@@ -8,7 +8,6 @@ package db
 import (
 	"context"
 	"database/sql"
-	"time"
 )
 
 const addPoints = `-- name: AddPoints :one
@@ -92,7 +91,7 @@ SELECT team_name, created_at, accepting_members FROM teams WHERE team_name = ?
 
 type FindTeamRow struct {
 	TeamName         string
-	CreatedAt        time.Time
+	CreatedAt        DateTime
 	AcceptingMembers bool
 }
 
@@ -109,7 +108,7 @@ SELECT team_name, created_at, accepting_members FROM teams WHERE invite_code = ?
 
 type FindTeamWithInviteCodeRow struct {
 	TeamName         string
-	CreatedAt        time.Time
+	CreatedAt        DateTime
 	AcceptingMembers bool
 }
 
@@ -272,9 +271,9 @@ type LastSubmissionTimeParams struct {
 	ProblemID string
 }
 
-func (q *Queries) LastSubmissionTime(ctx context.Context, arg LastSubmissionTimeParams) (time.Time, error) {
+func (q *Queries) LastSubmissionTime(ctx context.Context, arg LastSubmissionTimeParams) (DateTime, error) {
 	row := q.queryRow(ctx, q.lastSubmissionTimeStmt, lastSubmissionTime, arg.TeamName, arg.ProblemID)
-	var submitted_at time.Time
+	var submitted_at DateTime
 	err := row.Scan(&submitted_at)
 	return submitted_at, err
 }
@@ -294,7 +293,9 @@ func (q *Queries) LeaveTeam(ctx context.Context, arg LeaveTeamParams) error {
 }
 
 const listAllCorrectSubmissions = `-- name: ListAllCorrectSubmissions :many
-SELECT team_name, problem_id, submitted_at, correct, submitted_by FROM team_submit_attempts WHERE correct = TRUE
+SELECT team_name, problem_id, submitted_at, correct, submitted_by
+	FROM team_submit_attempts
+	WHERE correct = TRUE
 	ORDER BY submitted_at ASC
 `
 
@@ -367,24 +368,24 @@ func (q *Queries) ListSubmissions(ctx context.Context, arg ListSubmissionsParams
 }
 
 const listTeamAndMembers = `-- name: ListTeamAndMembers :many
-SELECT team_name, user_name, joined_at, is_leader FROM team_members ORDER BY joined_at ASC
+SELECT team_name, user_name FROM team_members ORDER BY joined_at ASC
 `
 
-func (q *Queries) ListTeamAndMembers(ctx context.Context) ([]TeamMember, error) {
+type ListTeamAndMembersRow struct {
+	TeamName string
+	Username string
+}
+
+func (q *Queries) ListTeamAndMembers(ctx context.Context) ([]ListTeamAndMembersRow, error) {
 	rows, err := q.query(ctx, q.listTeamAndMembersStmt, listTeamAndMembers)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []TeamMember
+	var items []ListTeamAndMembersRow
 	for rows.Next() {
-		var i TeamMember
-		if err := rows.Scan(
-			&i.TeamName,
-			&i.Username,
-			&i.JoinedAt,
-			&i.IsLeader,
-		); err != nil {
+		var i ListTeamAndMembersRow
+		if err := rows.Scan(&i.TeamName, &i.Username); err != nil {
 			return nil, err
 		}
 		items = append(items, i)
@@ -436,7 +437,7 @@ SELECT team_name, created_at, accepting_members FROM teams
 
 type ListTeamsRow struct {
 	TeamName         string
-	CreatedAt        time.Time
+	CreatedAt        DateTime
 	AcceptingMembers bool
 }
 
@@ -535,7 +536,7 @@ DELETE FROM team_points WHERE team_name = ? AND added_at = ? RETURNING team_name
 
 type RemovePointsByTimeParams struct {
 	TeamName string
-	AddedAt  time.Time
+	AddedAt  DateTime
 }
 
 func (q *Queries) RemovePointsByTime(ctx context.Context, arg RemovePointsByTimeParams) (TeamPoint, error) {
@@ -596,32 +597,27 @@ func (q *Queries) TeamInviteCode(ctx context.Context, teamName string) (string, 
 	return invite_code, err
 }
 
-const teamPoints = `-- name: TeamPoints :many
-SELECT
-		teams.team_name,
-		team_points.reason,
-		SUM(team_points.points) AS points
+const teamPointsEach = `-- name: TeamPointsEach :many
+SELECT team_name, reason, points
 	FROM team_points
-	RIGHT JOIN teams ON teams.team_name = team_points.team_name
-	GROUP BY teams.team_name, team_points.reason
-	ORDER BY COALESCE(SUM(team_points.points), 0) DESC
+	GROUP BY team_name, reason
 `
 
-type TeamPointsRow struct {
+type TeamPointsEachRow struct {
 	TeamName string
-	Reason   sql.NullString
-	Points   sql.NullFloat64
+	Reason   string
+	Points   float64
 }
 
-func (q *Queries) TeamPoints(ctx context.Context) ([]TeamPointsRow, error) {
-	rows, err := q.query(ctx, q.teamPointsStmt, teamPoints)
+func (q *Queries) TeamPointsEach(ctx context.Context) ([]TeamPointsEachRow, error) {
+	rows, err := q.query(ctx, q.teamPointsEachStmt, teamPointsEach)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []TeamPointsRow
+	var items []TeamPointsEachRow
 	for rows.Next() {
-		var i TeamPointsRow
+		var i TeamPointsEachRow
 		if err := rows.Scan(&i.TeamName, &i.Reason, &i.Points); err != nil {
 			return nil, err
 		}
@@ -637,19 +633,21 @@ func (q *Queries) TeamPoints(ctx context.Context) ([]TeamPointsRow, error) {
 }
 
 const teamPointsHistory = `-- name: TeamPointsHistory :many
-SELECT
-		team_name,
-		added_at,
-		SUM(points) AS points
-	FROM team_points
-	GROUP BY team_name, added_at
+SELECT team_name, added_at, points
+	FROM (
+		SELECT team_name, added_at, points FROM team_points
+		UNION ALL
+		SELECT team_name, MIN(joined_at) AS added_at, 0 AS points
+			FROM team_members
+			GROUP BY team_name
+	) AS history
 	ORDER BY added_at ASC
 `
 
 type TeamPointsHistoryRow struct {
 	TeamName string
-	AddedAt  time.Time
-	Points   sql.NullFloat64
+	AddedAt  DateTime
+	Points   float64
 }
 
 func (q *Queries) TeamPointsHistory(ctx context.Context) ([]TeamPointsHistoryRow, error) {
@@ -662,6 +660,41 @@ func (q *Queries) TeamPointsHistory(ctx context.Context) ([]TeamPointsHistoryRow
 	for rows.Next() {
 		var i TeamPointsHistoryRow
 		if err := rows.Scan(&i.TeamName, &i.AddedAt, &i.Points); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const teamPointsTotal = `-- name: TeamPointsTotal :many
+SELECT team_name, SUM(points) AS points
+	FROM team_points
+	GROUP BY team_name
+	ORDER BY COALESCE(SUM(points), 0) DESC
+`
+
+type TeamPointsTotalRow struct {
+	TeamName string
+	Points   sql.NullFloat64
+}
+
+func (q *Queries) TeamPointsTotal(ctx context.Context) ([]TeamPointsTotalRow, error) {
+	rows, err := q.query(ctx, q.teamPointsTotalStmt, teamPointsTotal)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []TeamPointsTotalRow
+	for rows.Next() {
+		var i TeamPointsTotalRow
+		if err := rows.Scan(&i.TeamName, &i.Points); err != nil {
 			return nil, err
 		}
 		items = append(items, i)

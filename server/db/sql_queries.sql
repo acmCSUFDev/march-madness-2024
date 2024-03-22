@@ -21,7 +21,9 @@ SELECT * FROM team_submit_attempts WHERE team_name = ? AND problem_id = ?
 	ORDER BY submitted_at ASC;
 
 -- name: ListAllCorrectSubmissions :many
-SELECT * FROM team_submit_attempts WHERE correct = TRUE
+SELECT *
+	FROM team_submit_attempts
+	WHERE correct = TRUE
 	ORDER BY submitted_at ASC;
 
 -- name: CountIncorrectSubmissions :one
@@ -42,30 +44,33 @@ DELETE FROM team_points WHERE team_name = ? AND reason = ? RETURNING *;
 -- name: RemovePointsByTime :one
 DELETE FROM team_points WHERE team_name = ? AND added_at = ? RETURNING *;
 
--- name: TeamPoints :many
-SELECT
-		teams.team_name,
-		team_points.reason,
-		SUM(team_points.points) AS points
+-- name: TeamPointsTotal :many
+SELECT team_name, SUM(points) AS points
 	FROM team_points
-	RIGHT JOIN teams ON teams.team_name = team_points.team_name
-	GROUP BY teams.team_name, team_points.reason
-	ORDER BY COALESCE(SUM(team_points.points), 0) DESC;
+	GROUP BY team_name
+	ORDER BY COALESCE(SUM(points), 0) DESC;
+
+-- name: TeamPointsEach :many
+SELECT team_name, reason, points
+	FROM team_points
+	GROUP BY team_name, reason;
 
 -- name: TeamPointsHistory :many
-SELECT
-		team_name,
-		added_at,
-		SUM(points) AS points
-	FROM team_points
-	GROUP BY team_name, added_at
+SELECT *
+	FROM (
+		SELECT team_name, added_at, points FROM team_points
+		UNION ALL
+		SELECT team_name, MIN(joined_at) AS added_at, 0 AS points
+			FROM team_members
+			GROUP BY team_name
+	) AS history
 	ORDER BY added_at ASC;
 
 -- name: ListTeams :many
 SELECT team_name, created_at, accepting_members FROM teams;
 
 -- name: ListTeamAndMembers :many
-SELECT * FROM team_members ORDER BY joined_at ASC;
+SELECT team_name, user_name FROM team_members ORDER BY joined_at ASC;
 
 -- name: FindTeamWithInviteCode :one
 SELECT team_name, created_at, accepting_members FROM teams WHERE invite_code = ? AND accepting_members = TRUE;

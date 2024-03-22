@@ -12,7 +12,15 @@
           "out": ".",
           "rename": {
             "user_name": "Username"
-          }
+          },
+          "overrides": [
+            {
+              "db_type": "DATETIME",
+              "go_type": {
+                "type": "DateTime"
+              }
+            }
+          ]
         }
       }
     }

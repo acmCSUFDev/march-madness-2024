@@ -6,12 +6,11 @@ package db
 
 import (
 	"database/sql"
-	"time"
 )
 
 type HackathonSubmission struct {
 	TeamName           string
-	SubmittedAt        time.Time
+	SubmittedAt        DateTime
 	ProjectUrl         string
 	ProjectDescription sql.NullString
 	Category           string
@@ -20,7 +19,7 @@ type HackathonSubmission struct {
 
 type Team struct {
 	TeamName         string
-	CreatedAt        time.Time
+	CreatedAt        DateTime
 	InviteCode       string
 	AcceptingMembers bool
 }
@@ -28,13 +27,13 @@ type Team struct {
 type TeamMember struct {
 	TeamName string
 	Username string
-	JoinedAt time.Time
+	JoinedAt DateTime
 	IsLeader bool
 }
 
 type TeamPoint struct {
 	TeamName string
-	AddedAt  time.Time
+	AddedAt  DateTime
 	Points   float64
 	Reason   string
 }
@@ -42,7 +41,7 @@ type TeamPoint struct {
 type TeamSubmitAttempt struct {
 	TeamName    string
 	ProblemID   string
-	SubmittedAt time.Time
+	SubmittedAt DateTime
 	Correct     bool
 	SubmittedBy sql.NullString
 }

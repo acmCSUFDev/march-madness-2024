@@ -169,13 +169,14 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if numAttempts > 0 {
-			lastAttempt, err = s.database.LastSubmissionTime(ctx, db.LastSubmissionTimeParams{
+			t, err := s.database.LastSubmissionTime(ctx, db.LastSubmissionTimeParams{
 				TeamName:  u.TeamName,
 				ProblemID: problemID,
 			})
 			if err != nil {
 				return fmt.Errorf("failed to get last submission time: %w", err)
 			}
+			lastAttempt = t.Time()
 		}
 
 		return nil

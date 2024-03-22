@@ -20,21 +20,22 @@
         </thead>
         <tbody>
           {{ range $i, $team := $table.Teams }}
-            {{ $members := index $table.TeamMembers $i }}
             <tr>
               <th>
-                <span data-tooltip="Members: {{ $members | join ", " }}" data-placement="right"
+                <span
+                  data-tooltip="Members: {{ $table.TeamMembersTooltip $i }}"
+                  data-placement="right"
                   >{{ $team }}</span
                 >
-                <small>({{ len $members }})</small>
+                <small>({{ index $table.TeamMembers $i | len }})</small>
               </th>
               <td>
                 <span
-                  {{ if not (eq 0.0 (index $table.Totals $i)) }}
+                  {{ if not (eq 0.0 (index $table.TeamTotals $i)) }}
                     data-tooltip="{{ $table.TeamPointsTooltip $i }}" data-placement="left"
                   {{ end }}
                 >
-                  <span class="points">{{ index $table.Totals $i | floor }}</span>
+                  <span class="points">{{ index $table.TeamTotals $i | floor }}</span>
                 </span>
                 <div class="week-of-code-scores">
                   {{ range $k, $p := (index $table.WeekOfCodeSolves $i) }}
@@ -134,15 +135,14 @@
       pointMarkersVisible: true,
     });
     let total = 0;
-    series.setData([
-      { time: startedAt, value: 0 },
-      ...teamPointsEvents
+    series.setData(
+      teamPointsEvents
         .filter((e) => e.team_name == team)
         .map((e) => {
           total += e.points;
           return { time: e.added_at, value: total };
         }),
-    ]);
+    );
     return series;
   });
 

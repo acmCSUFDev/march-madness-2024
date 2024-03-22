@@ -99,11 +99,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.teamInviteCodeStmt, err = db.PrepareContext(ctx, teamInviteCode); err != nil {
 		return nil, fmt.Errorf("error preparing query TeamInviteCode: %w", err)
 	}
-	if q.teamPointsStmt, err = db.PrepareContext(ctx, teamPoints); err != nil {
-		return nil, fmt.Errorf("error preparing query TeamPoints: %w", err)
+	if q.teamPointsEachStmt, err = db.PrepareContext(ctx, teamPointsEach); err != nil {
+		return nil, fmt.Errorf("error preparing query TeamPointsEach: %w", err)
 	}
 	if q.teamPointsHistoryStmt, err = db.PrepareContext(ctx, teamPointsHistory); err != nil {
 		return nil, fmt.Errorf("error preparing query TeamPointsHistory: %w", err)
+	}
+	if q.teamPointsTotalStmt, err = db.PrepareContext(ctx, teamPointsTotal); err != nil {
+		return nil, fmt.Errorf("error preparing query TeamPointsTotal: %w", err)
 	}
 	return &q, nil
 }
@@ -235,14 +238,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing teamInviteCodeStmt: %w", cerr)
 		}
 	}
-	if q.teamPointsStmt != nil {
-		if cerr := q.teamPointsStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing teamPointsStmt: %w", cerr)
+	if q.teamPointsEachStmt != nil {
+		if cerr := q.teamPointsEachStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing teamPointsEachStmt: %w", cerr)
 		}
 	}
 	if q.teamPointsHistoryStmt != nil {
 		if cerr := q.teamPointsHistoryStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing teamPointsHistoryStmt: %w", cerr)
+		}
+	}
+	if q.teamPointsTotalStmt != nil {
+		if cerr := q.teamPointsTotalStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing teamPointsTotalStmt: %w", cerr)
 		}
 	}
 	return err
@@ -309,8 +317,9 @@ type Queries struct {
 	setHackathonSubmissionStmt    *sql.Stmt
 	setHackathonWinnerStmt        *sql.Stmt
 	teamInviteCodeStmt            *sql.Stmt
-	teamPointsStmt                *sql.Stmt
+	teamPointsEachStmt            *sql.Stmt
 	teamPointsHistoryStmt         *sql.Stmt
+	teamPointsTotalStmt           *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
@@ -342,7 +351,8 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		setHackathonSubmissionStmt:    q.setHackathonSubmissionStmt,
 		setHackathonWinnerStmt:        q.setHackathonWinnerStmt,
 		teamInviteCodeStmt:            q.teamInviteCodeStmt,
-		teamPointsStmt:                q.teamPointsStmt,
+		teamPointsEachStmt:            q.teamPointsEachStmt,
 		teamPointsHistoryStmt:         q.teamPointsHistoryStmt,
+		teamPointsTotalStmt:           q.teamPointsTotalStmt,
 	}
 }
