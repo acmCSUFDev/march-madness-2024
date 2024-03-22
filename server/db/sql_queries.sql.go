@@ -598,7 +598,7 @@ func (q *Queries) TeamInviteCode(ctx context.Context, teamName string) (string, 
 }
 
 const teamPointsEach = `-- name: TeamPointsEach :many
-SELECT team_name, reason, points
+SELECT team_name, reason, SUM(points) AS points
 	FROM team_points
 	GROUP BY team_name, reason
 `
@@ -606,7 +606,7 @@ SELECT team_name, reason, points
 type TeamPointsEachRow struct {
 	TeamName string
 	Reason   string
-	Points   float64
+	Points   sql.NullFloat64
 }
 
 func (q *Queries) TeamPointsEach(ctx context.Context) ([]TeamPointsEachRow, error) {

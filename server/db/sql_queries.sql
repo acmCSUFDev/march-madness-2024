@@ -51,7 +51,7 @@ SELECT team_name, SUM(points) AS points
 	ORDER BY COALESCE(SUM(points), 0) DESC;
 
 -- name: TeamPointsEach :many
-SELECT team_name, reason, points
+SELECT team_name, reason, SUM(points) AS points
 	FROM team_points
 	GROUP BY team_name, reason;
 

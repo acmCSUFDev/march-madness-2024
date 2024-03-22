@@ -101,7 +101,7 @@ func (s *Server) leaderboard(w http.ResponseWriter, r *http.Request) {
 		}
 		table.TeamPoints[ti] = append(table.TeamPoints[ti], teamPoints{
 			Reason: row.Reason,
-			Points: row.Points,
+			Points: row.Points.Float64,
 		})
 	}
 
