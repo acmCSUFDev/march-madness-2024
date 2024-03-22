@@ -71,4 +71,14 @@
       display: none;
     }
   }
+
+  #points-hover-info {
+    margin-top: var(--spacing);
+    font-size: 0.8em;
+    text-align: center;
+
+    &.empty {
+      opacity: 0.75;
+    }
+  }
 }

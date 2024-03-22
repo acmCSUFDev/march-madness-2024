@@ -60,6 +60,7 @@
     <section>
       <h2>History</h2>
       <div id="points-chart"></div>
+      <p id="points-hover-info"></p>
       <script>
         window.teamPointsEvents = JSON.parse({{ toJson .Events }});
         window.teams = JSON.parse({{ toJson .Table.Teams }});
@@ -77,6 +78,9 @@
 
   const styles = window.getComputedStyle(document.body);
   const mutedColor = styles.getPropertyValue("--muted-color");
+
+  const pointsChart = document.getElementById("points-chart");
+  const pointsHoverInfo = document.getElementById("points-hover-info");
 
   const teams = window.teams;
   const startedAt = Math.round(window.startedAt / 1000);
@@ -99,7 +103,7 @@
     "#17becf",
   ];
 
-  const chart = charts.createChart(document.getElementById("points-chart"), {
+  const chart = charts.createChart(pointsChart, {
     autoSize: true,
     handleScale: true,
     handleScroll: true,
@@ -119,6 +123,22 @@
       secondsVisible: false,
       fixLeftEdge: true,
       fixRightEdge: true,
+      tickMarkFormatter: (time, mark, locale) => {
+        let d = new Date(time * 1000);
+        switch (mark) {
+          case charts.TickMarkType.DayOfMonth:
+          case charts.TickMarkType.Month:
+            return d.toLocaleDateString(locale, { day: "numeric", month: "short" });
+          case charts.TickMarkType.Time:
+          case charts.TickMarkType.TimeWithSeconds:
+            return d.toLocaleTimeString(locale, {
+              hour: "numeric",
+              minute: "numeric",
+            });
+          default:
+            return d.toLocaleDateString(locale, { day: "numeric" });
+        }
+      },
     },
   });
 
@@ -126,13 +146,16 @@
     const series = chart.addLineSeries({
       title: team,
       color: colors[teams.indexOf(team) % colors.length],
-      lineWidth: 2,
+      lineWidth: 1.5,
       priceFormat: {
         type: "price",
         precision: 0,
         minMove: 1,
       },
+      priceLineVisible: false,
       pointMarkersVisible: true,
+      pointMarkersRadius: 2,
+      crosshairMarkerVisible: false,
     });
     let total = 0;
     series.setData(
@@ -146,7 +169,29 @@
     return series;
   });
 
+  function setHoverInfo(info, color = null) {
+    pointsHoverInfo.textContent = info || "Hover over any point to see scoring information.";
+    pointsHoverInfo.style.color = color;
+    pointsHoverInfo.classList.toggle("empty", !info);
+  }
+
+  chart.subscribeCrosshairMove((ev) => {
+    const data = ev.seriesData.entries().next().value;
+    if (!data) {
+      setHoverInfo();
+      return;
+    }
+
+    const [series, value] = data;
+    const team = series.options().title;
+    const color = series.options().color;
+    const score = value.value;
+
+    setHoverInfo(`${team}: ${Math.floor(score)} points`, color);
+  });
+
   chart.timeScale().fitContent();
+  setHoverInfo();
 </script>
 
 <!-- -->
