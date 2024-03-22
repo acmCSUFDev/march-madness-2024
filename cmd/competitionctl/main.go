@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"go/doc/comment"
 	"log"
 	"math"
 	"os"
@@ -76,10 +75,10 @@ func run(ctx context.Context) error {
 		database: db,
 	}
 	switch pflag.Arg(0) {
-	case "hackathon-submissions":
-		return hackathonSubmissions(context)
 	case "hackathon-set-winner":
 		return hackathonSetWinner(context)
+	case "award-points":
+		return awardPoints(context)
 	case "list-teams":
 		return teamsList(context)
 	case "delete-team":
@@ -95,58 +94,12 @@ func run(ctx context.Context) error {
 }
 
 var commandsHelp = []string{
-	"hackathon-submissions                          list hackathon submissions",
 	"hackathon-set-winner [team] [0|1|2|3] [points] set hackathon winner (0 = no winner)",
+	"award-points [team] [points] [reason]          award or remove points",
 	"list-teams                                     list teams",
 	"delete-team [team]                             delete team",
 	"invite-code [team]                             get invite code for team",
 	"list-points                                    list points",
-}
-
-var placeStrings = []string{
-	"1st",
-	"2nd",
-	"3rd",
-}
-
-func hackathonSubmissions(ctx Context) error {
-	submissions, err := ctx.database.HackathonSubmissions(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get hackathon submissions: %w", err)
-	}
-	points, err := ctx.database.TeamPoints(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to get team points: %w", err)
-	}
-	for _, submission := range submissions {
-		fmt.Printf("%s", submission.TeamName)
-		if submission.WonRank.Valid {
-			teamPointIx := slices.IndexFunc(points, func(r db.TeamPointsRow) bool {
-				return r.TeamName == submission.TeamName
-			})
-			teamPoint := points[teamPointIx]
-			fmt.Printf(
-				" (won %s place +%.0f)",
-				placeStrings[submission.WonRank.Int64-1], teamPoint.Points.Float64)
-		}
-		fmt.Println()
-		fmt.Printf("  Submitted at: %v\n", submission.SubmittedAt.In(time.Local))
-		fmt.Printf("  Project link: %s\n", submission.ProjectUrl)
-		fmt.Printf("  Description:\n")
-		if submission.ProjectDescription.Valid {
-			doc := (&comment.Parser{}).Parse(submission.ProjectDescription.String)
-			txt := (&comment.Printer{
-				TextPrefix:     "    ",
-				TextCodePrefix: "      ",
-				TextWidth:      80,
-			}).Text(doc)
-			fmt.Println(string(txt))
-		} else {
-			fmt.Println("    (empty)")
-		}
-		fmt.Println()
-	}
-	return nil
 }
 
 func hackathonSetWinner(ctx Context) error {
@@ -202,13 +155,55 @@ func hackathonSetWinner(ctx Context) error {
 	return nil
 }
 
+func awardPoints(ctx Context) error {
+	team := pflag.Arg(1)
+
+	points, err := strconv.ParseFloat(pflag.Arg(2), 64)
+	if err != nil {
+		return fmt.Errorf("invalid points: %w", err)
+	}
+
+	reason := pflag.Arg(3)
+	if reason == "hackathon" {
+		return fmt.Errorf("hackathon-specific points must be set with hackathon-set-winner")
+	}
+
+	deletedPoints, deleteErr := ctx.database.RemovePointsByReason(ctx, db.RemovePointsByReasonParams{
+		TeamName: team,
+		Reason:   reason,
+	})
+	if deleteErr != nil {
+		return fmt.Errorf("failed to remove points: %w", deleteErr)
+	}
+
+	if points > 0 {
+		if len(deletedPoints) > 0 {
+			log.Printf("team %q has %d points to delete for reason %q\n", team, len(deletedPoints), reason)
+		}
+		_, err = ctx.database.AddPoints(ctx, db.AddPointsParams{
+			TeamName: team,
+			Points:   points,
+			Reason:   reason,
+		})
+		if err != nil {
+			return fmt.Errorf("failed to add points: %w", err)
+		}
+	} else {
+		if len(deletedPoints) == 0 {
+			log.Printf("team %q has no points to delete for reason %q\n", team, reason)
+		}
+	}
+
+	return nil
+}
+
 func teamsList(ctx Context) error {
 	teams, err := ctx.database.ListTeams(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list teams: %w", err)
 	}
 
-	teamPoints, err := ctx.database.TeamPoints(ctx)
+	teamPoints, err := ctx.database.TeamPointsTotal(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get team points: %w", err)
 	}
@@ -233,14 +228,14 @@ func teamsList(ctx Context) error {
 			membersString = strings.Join(strs, ", ")
 		}
 
-		pointsIx := slices.IndexFunc(teamPoints, func(r db.TeamPointsRow) bool {
+		pointsIx := slices.IndexFunc(teamPoints, func(r db.TeamPointsTotalRow) bool {
 			return r.TeamName == team.TeamName
 		})
 		points := teamPoints[pointsIx].Points.Float64
 
 		fmt.Fprintf(w,
 			"%s\t%s\t%.0f\t%v\n",
-			team.TeamName, membersString, points, team.CreatedAt.In(time.Local))
+			team.TeamName, membersString, points, team.CreatedAt.Time().In(time.Local))
 	}
 
 	w.Flush()
@@ -281,7 +276,9 @@ func pointsList(ctx Context) error {
 	for _, pt := range points {
 		fmt.Printf(
 			"%v: %s +%f\n",
-			pt.AddedAt.In(time.Local), pt.TeamName, math.Floor(pt.Points.Float64))
+			pt.AddedAt.Time().In(time.Local),
+			pt.TeamName,
+			math.Floor(pt.Points))
 	}
 	return nil
 }
