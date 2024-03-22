@@ -112,6 +112,7 @@ func (s *Server) viewProblemInput(w http.ResponseWriter, r *http.Request) {
 type problemResultPageData struct {
 	frontend.ComponentContext
 	Day           problemDay
+	Part          int
 	Cooldown      time.Duration
 	CooldownTime  time.Time
 	Correct       bool
@@ -254,6 +255,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 			Username: u.Username,
 		},
 		Day:           day,
+		Part:          data.Part,
 		Correct:       correct,
 		Cooldown:      cooldown,
 		CooldownTime:  cooldownTime,

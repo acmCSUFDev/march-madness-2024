@@ -20,21 +20,26 @@
           </time>
         </strong>
         before you can submit another answer.
-        <a href="/problems/{{ .Day }}">Go back to the problem here</a>.
       </p>
+      <p><a href="/problems/{{ .Day }}">Go back to the problem here</a>.</p>
     {{ else }}
       {{ if .Correct }}
         <p>
           Congratulations, your answer is <strong>correct</strong>! Solving this problem nets you a
           total of <b>{{ .PointsAwarded | floor }} points</b>.
+          {{ if eq .Part 1 }}
+            You're halfway there! You can now submit the answer to the second part of the problem.
+          {{ else }}
+            You've completed all 2 parts of the problem. Congratulations!
+          {{ end }}
+        </p>
+        <p>
           <a href="/problems/{{ .Day }}">Go back to the problem here</a>, or
           <a href="/leaderboard">check out the leaderboard</a>.
         </p>
       {{ else }}
-        <p>
-          Sorry, your answer is <strong>incorrect</strong>.
-          <a href="/problems/{{ .Day }}">Go back to the problem here</a>.
-        </p>
+        <p>Sorry, your answer is <strong>incorrect</strong>.</p>
+        <p><a href="/problems/{{ .Day }}">Go back to the problem here</a>.</p>
       {{ end }}
     {{ end }}
   </article>
