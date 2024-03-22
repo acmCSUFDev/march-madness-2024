@@ -71,17 +71,11 @@ func run(ctx context.Context) error {
 
 	problems := make([]problem.Problem, len(config.Problems.Modules))
 	for i, module := range config.Problems.Modules {
-		description, err := problem.ParseProblemDescriptionFile(module.README)
+		p, err := problem.NewProblemFromModule(module, logger)
 		if err != nil {
-			return fmt.Errorf("failed to parse README file at %q: %w", module.README, err)
+			return fmt.Errorf("failed to create problem from module %q: %w", module.README, err)
 		}
-
-		runner, err := problem.NewCommandRunner(logger.With("component", "runner"), module.Command)
-		if err != nil {
-			return fmt.Errorf("failed to create command runner %q: %w", module.Command, err)
-		}
-
-		problems[i] = problem.NewProblem(module.README, description, runner)
+		problems[i] = p
 	}
 	problem.CacheAllProblems(problems, logger.With("component", "problem_cache"))
 

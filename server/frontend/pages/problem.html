@@ -11,6 +11,17 @@
       <h2>{{ .Problem.Description.Title }}</h2>
     </hgroup>
 
+    {{ if not .PPPIsDefault }}
+      <section>
+        <p>
+          <b>Heads up!</b>
+          Solving this problem will net you a total of
+          <b><mark>{{ .PointsPerPart }} points</mark> for each part!</b>
+        </p>
+      </section>
+    {{ end }}
+
+
     <section class="part part1">
       {{ md .Problem.Description.Part1 }}
     </section>

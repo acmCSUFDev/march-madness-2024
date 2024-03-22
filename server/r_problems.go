@@ -27,7 +27,8 @@ func (s *Server) routeProblems(r chi.Router) {
 
 type problemsPageData struct {
 	frontend.ComponentContext
-	Problems *problem.ProblemSet
+	Problems      *problem.ProblemSet
+	PointsPerPart float64
 }
 
 func (s *Server) listProblems(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +38,8 @@ func (s *Server) listProblems(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
-		Problems: s.problems,
+		Problems:      s.problems,
+		PointsPerPart: problem.PointsPerPart,
 	})
 }
 
@@ -46,6 +48,7 @@ type problemPageData struct {
 	Problem       *problem.Problem
 	Day           problemDay
 	PointsPerPart float64
+	PPPIsDefault  bool
 	SolvedPart1   bool
 	SolvedPart2   bool
 }
@@ -79,7 +82,8 @@ func (s *Server) viewProblem(w http.ResponseWriter, r *http.Request) {
 		},
 		Problem:       p,
 		Day:           day,
-		PointsPerPart: problem.PointsPerPart,
+		PointsPerPart: p.PointsPerPart,
+		PPPIsDefault:  p.PointsPerPart == problem.PointsPerPart,
 		SolvedPart1:   p1solves > 0,
 		SolvedPart2:   p2solves > 0,
 	})
@@ -107,10 +111,11 @@ func (s *Server) viewProblemInput(w http.ResponseWriter, r *http.Request) {
 
 type problemResultPageData struct {
 	frontend.ComponentContext
-	Day          problemDay
-	Cooldown     time.Duration
-	CooldownTime time.Time
-	Correct      bool
+	Day           problemDay
+	Cooldown      time.Duration
+	CooldownTime  time.Time
+	Correct       bool
+	PointsAwarded float64
 }
 
 func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
@@ -184,6 +189,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 
 	cooldown := max(0, cooldownTime.Sub(now))
 	var correct bool
+	var points float64
 
 	if cooldown == 0 {
 		seed := problem.StringToSeed(u.TeamName)
@@ -203,6 +209,11 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 		}
 
 		correct = answer == data.Answer
+		if correct {
+			points = problem.ScalePoints(
+				now, s.problems.ProblemStartTime(day.index()),
+				p.PointsPerPart, p.ScoringVersion)
+		}
 
 		err = s.database.Tx(func(q *db.Queries) error {
 			_, err := s.database.RecordSubmission(ctx, db.RecordSubmissionParams{
@@ -221,7 +232,7 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 			if correct {
 				_, err = s.database.AddPoints(ctx, db.AddPointsParams{
 					TeamName: u.TeamName,
-					Points:   problem.ScalePoints(now, s.problems.ProblemStartTime(day.index())),
+					Points:   points,
 					Reason:   "week of code",
 				})
 				if err != nil {
@@ -242,10 +253,11 @@ func (s *Server) submitProblem(w http.ResponseWriter, r *http.Request) {
 			TeamName: u.TeamName,
 			Username: u.Username,
 		},
-		Day:          day,
-		Correct:      correct,
-		Cooldown:     cooldown,
-		CooldownTime: cooldownTime,
+		Day:           day,
+		Correct:       correct,
+		Cooldown:      cooldown,
+		CooldownTime:  cooldownTime,
+		PointsAwarded: points,
 	})
 }
 

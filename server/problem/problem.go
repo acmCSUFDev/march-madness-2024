@@ -15,6 +15,22 @@ import (
 	"github.com/puzpuzpuz/xsync/v3"
 )
 
+// ModuleConfig is a module that points to a problem.
+type ModuleConfig struct {
+	Command string `json:"cmd"`
+	README  string `json:"readme"`
+	ProblemConfig
+}
+
+// ProblemConfig contains optional configuration for a problem.
+type ProblemConfig struct {
+	// PointsPerPart is the number of points awarded for each part of the problem.
+	// It overrides the default [PointsPerPart].
+	PointsPerPart float64 `json:"points_per_part,omitempty"`
+	// ScoringVersion is the version of the scoring function.
+	ScoringVersion ScoringVersion `json:"scoring_version,omitempty"`
+}
+
 // Problem is a problem that can be solved.
 type Problem struct {
 	// ID returns the unique ID of the problem.
@@ -24,15 +40,40 @@ type Problem struct {
 	Description ProblemDescription
 
 	Runner
+	ProblemConfig
 }
 
 // NewProblem creates a new problem.
-func NewProblem(id string, desc ProblemDescription, runner Runner) Problem {
-	return Problem{
-		ID:          id,
-		Description: desc,
-		Runner:      runner,
+func NewProblem(id string, desc ProblemDescription, runner Runner, cfg ProblemConfig) Problem {
+	if cfg.PointsPerPart == 0 {
+		cfg.PointsPerPart = PointsPerPart
 	}
+	if cfg.ScoringVersion == 0 {
+		cfg.ScoringVersion = latestScoreScalingVersion
+	}
+	return Problem{
+		ID:            id,
+		Description:   desc,
+		Runner:        runner,
+		ProblemConfig: cfg,
+	}
+}
+
+// NewProblemFromModule creates a new problem from a problem module.
+func NewProblemFromModule(module ModuleConfig, logger *slog.Logger) (Problem, error) {
+	var z Problem
+
+	description, err := ParseProblemDescriptionFile(module.README)
+	if err != nil {
+		return z, fmt.Errorf("failed to parse README file at %q: %w", module.README, err)
+	}
+
+	runner, err := NewCommandRunner(logger.With("component", "runner"), module.Command)
+	if err != nil {
+		return z, fmt.Errorf("failed to create command runner %q: %w", module.Command, err)
+	}
+
+	return NewProblem(module.README, description, runner, module.ProblemConfig), nil
 }
 
 // Runner is a problem runner.
@@ -84,7 +125,7 @@ func (p *CommandRunner) Part2Solution(ctx context.Context, seed int) (int64, err
 }
 
 func (p *CommandRunner) run(ctx context.Context, seed int, args string) (string, error) {
-	command := p.command + " " + args
+	command := fmt.Sprintf("%s --seed %d %s", p.command, seed, args)
 	logger := p.logger.With(
 		"seed", seed,
 		"command", command)
@@ -169,14 +210,13 @@ func (c *CachedRunner) Part2Solution(ctx context.Context, seed int) (int64, erro
 	return getCache(ctx, c, seed, part2CacheKey, c.runner.Part2Solution)
 }
 
-var errCacheMiss = errors.New("cache miss")
-
 func getCache[T any](
 	ctx context.Context,
 	c *CachedRunner,
 	seed int, pkey problemCacheKey, fn func(context.Context, int) (T, error),
 ) (T, error) {
 	key := runnerCacheKey{c.problemID, seed, pkey}
+
 	logger := c.logger.With(
 		"seed", seed,
 		"key.id", key.id,

@@ -25,7 +25,8 @@
     {{ else }}
       {{ if .Correct }}
         <p>
-          Congratulations! Your answer is <strong>correct</strong>!
+          Congratulations, your answer is <strong>correct</strong>! Solving this problem nets you a
+          total of <b>{{ .PointsAwarded | floor }} points</b>.
           <a href="/problems/{{ .Day }}">Go back to the problem here</a>, or
           <a href="/leaderboard">check out the leaderboard</a>.
         </p>

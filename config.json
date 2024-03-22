@@ -9,23 +9,28 @@
     "modules": [
       {
         "cmd": "python3 -m problems.booting-up",
-        "readme": "./problems/booting-up/README.md"
+        "readme": "./problems/booting-up/README.md",
+        "scoring_version": 1
       },
       {
         "cmd": "python3 -m problems.empty-spaces",
-        "readme": "./problems/empty-spaces/README.md"
+        "readme": "./problems/empty-spaces/README.md",
+        "scoring_version": 1
       },
       {
         "cmd": "python3 -m problems.crafting",
-        "readme": "./problems/crafting/README.md"
+        "readme": "./problems/crafting/README.md",
+        "scoring_version": 1
       },
       {
         "cmd": "python3 -m problems.internet-connection",
-        "readme": "./problems/internet-connection/README.md"
+        "readme": "./problems/internet-connection/README.md",
+        "scoring_version": 1
       },
       {
-        "cmd": "false",
-        "readme": "./problems/_placeholder/README.md"
+        "cmd": "python3 -m problems.intruder-alert",
+        "readme": "./problems/intruder-alert/README.md",
+        "points_per_part": 200
       }
     ],
     "schedule": {

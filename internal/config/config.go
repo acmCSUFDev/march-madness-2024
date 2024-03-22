@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 	"time"
+
+	"dev.acmcsuf.com/march-madness-2024/server/problem"
 )
 
 type Config struct {
@@ -20,17 +22,12 @@ type Config struct {
 }
 
 type ProblemsConfig struct {
-	Modules  []ProblemModule `json:"modules"`
+	Modules  []problem.ModuleConfig `json:"modules"`
 	Schedule struct {
 		Start time.Time `json:"start"`
 		Every Duration  `json:"every"`
 	} `json:"schedule"`
 	Cooldown Duration `json:"cooldown"`
-}
-
-type ProblemModule struct {
-	Command string `json:"cmd"`
-	README  string `json:"readme"`
 }
 
 type HackathonConfig struct {

@@ -26,25 +26,81 @@ func CalculateCooldownEnd(totalAttempts int, lastSubmitted, now time.Time) time.
 		cooldownMax))
 }
 
-const (
-	// PointsPerPart is the number of points awarded for solving a part of a
-	// problem.
-	PointsPerPart = 100
-	// MaxHour is the maximum hour before people get the lowest points.
-	MaxHour = 24
-)
+// PointsPerPart is the number of points awarded for solving a part of a
+// problem.
+const PointsPerPart = 100
 
 // ScalePoints scales the points for a problem's part based on the time the
 // problem was started and the time the part was solved.
-func ScalePoints(t, startedAt time.Time) float64 {
-	h := t.Sub(startedAt).Hours()
-	return scoreScalingFn(clamp(h/MaxHour, 0, 1)) * PointsPerPart
+//
+// Optional parameters:
+//
+// - If maxPoints is 0, it is set to PointsPerPart.
+// - If version is 0, the latest scoring function is used.
+func ScalePoints(t, startedAt time.Time, maxPoints float64, version ScoringVersion) float64 {
+	if maxPoints == 0 {
+		maxPoints = PointsPerPart
+	}
+	return version.fn()(t, startedAt) * maxPoints
 }
 
-func scoreScalingFn(x float64) float64 {
+// ScoringVersion is the version of the scoring function.
+type ScoringVersion int
+
+const (
+	_ ScoringVersion = iota
+	V1ScoreScaling
+	V2ScoreScaling
+
+	maxScoreScalingVersion // latest = maxScoreScalingVersion - 1
+)
+
+const latestScoreScalingVersion = maxScoreScalingVersion - 1
+
+func (v ScoringVersion) IsValid() bool {
+	return 0 < v && v < maxScoreScalingVersion
+}
+
+func (v ScoringVersion) fn() scoringFn {
+	switch v {
+	case 0:
+		return latestScoreScalingVersion.fn()
+	case V1ScoreScaling:
+		return scoreScalingV1
+	case V2ScoreScaling:
+		return scoreScalingV2
+	default:
+		panic("invalid scoring version")
+	}
+}
+
+type scoringFn func(t, startedAt time.Time) float64
+
+var (
+	_ scoringFn = scoreScalingV1
+	_ scoringFn = scoreScalingV2
+)
+
+func scoreScalingV1(t, startedAt time.Time) float64 {
+	const maxHour = 24
 	// https://www.desmos.com/calculator/22el44ng3r
-	f := func(x float64) float64 { return (math.Atan(-math.Pi*x+math.Pi/2) / 4) + 0.75 }
-	g := func(x float64) float64 { return f(x) + (1 - f(0)) }
+	f1 := func(x float64) float64 { return (math.Atan(-math.Pi*x+math.Pi/2) / 4) + 0.75 }
+	f2 := func(x float64) float64 { return f1(x) + (1 - f1(0)) }
+	g := func(x float64) float64 { return clamp(f2(x), 0, 1) }
+	x := t.Sub(startedAt).Hours() / maxHour
+	return g(x)
+}
+
+func scoreScalingV2(t, startedAt time.Time) float64 {
+	// https://www.desmos.com/calculator/adpqv3xqzr
+	const maxHour = 12
+	const intensity = 6.7
+	const phase = 1.1
+	const m = 3.4
+	f1 := func(x float64) float64 { return math.Atan(-m*x+phase) / intensity }
+	f2 := func(x float64) float64 { return f1(x) + (1 - f1(0)) }
+	g := func(x float64) float64 { return clamp(f2(x), 0, 1) }
+	x := t.Sub(startedAt).Hours() / maxHour
 	return g(x)
 }
 
