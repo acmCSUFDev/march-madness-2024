@@ -83,12 +83,7 @@ func run(ctx context.Context) error {
 
 		problems[i] = problem.NewProblem(module.README, description, runner)
 	}
-
-	db, err := problem.CacheAllProblems(config.Paths.ProblemsCache, problems, logger.With("component", "problem_cache"))
-	if err != nil {
-		return fmt.Errorf("failed to wrap problems with input cache: %w", err)
-	}
-	defer db.Close()
+	problem.CacheAllProblems(problems, logger.With("component", "problem_cache"))
 
 	problemset := problem.NewProblemSetWithSchedule(problems, &problem.ProblemReleaseSchedule{
 		StartReleaseAt: config.Problems.Schedule.Start,

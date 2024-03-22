@@ -2,11 +2,9 @@ package problem
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"hash/crc32"
-	"io"
 	"log/slog"
 	"math"
 	"os/exec"
@@ -14,10 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"dev.acmcsuf.com/march-madness-2024/server/internal/badgerstub"
-	"github.com/dgraph-io/badger/v4"
-
-	badgeropts "github.com/dgraph-io/badger/v4/options"
+	"github.com/puzpuzpuz/xsync/v3"
 )
 
 // Problem is a problem that can be solved.
@@ -125,19 +120,34 @@ func (p *CommandRunner) run(ctx context.Context, seed int, args string) (string,
 	return strings.TrimSuffix(buf.String(), "\n"), nil
 }
 
+type problemCacheKey uint8
+
+const (
+	_ problemCacheKey = iota
+	inputCacheKey
+	part1CacheKey
+	part2CacheKey
+)
+
+type runnerCacheKey struct {
+	id   string
+	seed int
+	key  problemCacheKey
+}
+
 // CachedRunner wraps a Runner and caches the results in a persistent
 // database.
 type CachedRunner struct {
-	cache     *badger.DB
+	cache     *xsync.MapOf[runnerCacheKey, any]
 	logger    *slog.Logger
 	problemID string
 	runner    Runner
 }
 
 // NewCachedRunner creates a new cached runner with an existing Badger database.
-func NewCachedRunner(db *badger.DB, logger *slog.Logger, problem Problem) *CachedRunner {
+func NewCachedRunner(logger *slog.Logger, problem Problem) *CachedRunner {
 	return &CachedRunner{
-		cache:     db,
+		cache:     xsync.NewMapOf[runnerCacheKey, any](),
 		logger:    logger.With("runner", "cached"),
 		problemID: problem.ID,
 		runner:    problem.Runner,
@@ -159,90 +169,42 @@ func (c *CachedRunner) Part2Solution(ctx context.Context, seed int) (int64, erro
 	return getCache(ctx, c, seed, part2CacheKey, c.runner.Part2Solution)
 }
 
-type problemCacheKey string
-
-const (
-	inputCacheKey problemCacheKey = "input"
-	part1CacheKey problemCacheKey = "part1"
-	part2CacheKey problemCacheKey = "part2"
-)
+var errCacheMiss = errors.New("cache miss")
 
 func getCache[T any](
 	ctx context.Context,
 	c *CachedRunner,
-	seed int, key problemCacheKey, fn func(context.Context, int) (T, error),
+	seed int, pkey problemCacheKey, fn func(context.Context, int) (T, error),
 ) (T, error) {
-
-	id := c.problemID
-	dbKey := []byte("[v2][" + id + "][" + strconv.Itoa(seed) + "][" + string(key) + "]")
-
+	key := runnerCacheKey{c.problemID, seed, pkey}
 	logger := c.logger.With(
 		"seed", seed,
-		"key", string(dbKey))
+		"key.id", key.id,
+		"key.seed", key.seed)
 
-	var val T
-	err := c.cache.View(func(tx *badger.Txn) error {
-		item, err := tx.Get(dbKey)
-		if err != nil {
-			return err
-		}
-		return item.Value(func(bytes []byte) error {
-			return json.Unmarshal(bytes, &val)
-		})
-	})
-	if err == nil {
-		logger.DebugContext(ctx, "badger cache hit")
-		return val, nil
+	v, ok := c.cache.Load(key)
+	if ok {
+		logger.DebugContext(ctx, "problem cache hit")
+		return v.(T), nil
 	}
 
-	logger.DebugContext(ctx,
-		"badger cache miss",
-		"err", err)
+	logger.DebugContext(ctx, "problem cache miss")
 
-	val, err = fn(ctx, seed)
+	val, err := fn(ctx, seed)
 	if err != nil {
 		return val, err
 	}
 
-	bytes, err := json.Marshal(val)
-	if err != nil {
-		logger.ErrorContext(ctx,
-			"failed to marshal value",
-			"err", err)
-		return val, fmt.Errorf("failed to marshal value: %w", err)
-	}
-
-	if err = c.cache.Update(func(tx *badger.Txn) error {
-		return tx.Set(dbKey, bytes)
-	}); err != nil {
-		logger.ErrorContext(ctx,
-			"failed to set value",
-			"err", err)
-		return val, fmt.Errorf("failed to set value: %w", err)
-	}
-
+	c.cache.LoadOrStore(key, val)
 	return val, nil
 }
 
 // CacheAllProblems caches all input generators in a persistent database.
 // If cacheDBPath is empty, then an in-memory database is used.
-func CacheAllProblems(cacheDBPath string, problems []Problem, logger *slog.Logger) (io.Closer, error) {
-	opts := badger.DefaultOptions(cacheDBPath)
-	opts.Compression = badgeropts.ZSTD
-	opts.ZSTDCompressionLevel = 1
-	opts.Logger = badgerstub.New(logger)
-	opts.InMemory = cacheDBPath == ""
-
-	db, err := badger.Open(opts)
-	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
-	}
-
+func CacheAllProblems(problems []Problem, logger *slog.Logger) {
 	for i := range problems {
-		problems[i].Runner = NewCachedRunner(db, logger, problems[i])
+		problems[i].Runner = NewCachedRunner(logger, problems[i])
 	}
-
-	return db, nil
 }
 
 // StringToSeed converts a string to a seed.

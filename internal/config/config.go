@@ -10,10 +10,9 @@ import (
 type Config struct {
 	HTTPAddress string `json:"http_address"`
 	Paths       struct {
-		Frontend      string `json:"frontend"`
-		Database      string `json:"database"`
-		ProblemsCache string `json:"problems_cache"`
-		SecretKey     string `json:"secret_key"`
+		Frontend  string `json:"frontend"`
+		Database  string `json:"database"`
+		SecretKey string `json:"secret_key"`
 	} `json:"paths"`
 	Problems             ProblemsConfig  `json:"problems"`
 	Hackathon            HackathonConfig `json:"hackathon"`
