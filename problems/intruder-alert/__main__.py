@@ -1,166 +1,179 @@
 #!/usr/bin/env python3
 
-import os
-import random
+import math
 import typing
-import logging
 import pydantic
+from enum import Enum
+from logging import debug
 from problems import problem_utils
-from datetime import datetime as DateTime
+from datetime import (
+    date as Date,
+    datetime as DateTime,
+    timezone as Timezone,
+    timedelta as TimeDelta,
+)
+from .csuf_buildings import BUILDINGS
 
 
-BUILDING_LIST_FILE = os.path.join(os.path.dirname(__file__), "csuf-buildings.txt")
-MIN_TIME = DateTime(2023, 10, 1)
-MAX_TIME = DateTime(2023, 12, 30, 23, 59, 59)
-PEOPLE = 500
-ENTRIES = 50000
+TIMEZONE = Timezone(TimeDelta(hours=-7))  # PDT
+MIN_TIME = DateTime(2023, 12, 1, tzinfo=TIMEZONE)
+PEOPLE = 200
+ENTRIES = 10000
+
+# Use for example
+# PEOPLE = 2
+# ENTRIES = 10
+
+
+class Direction(Enum):
+    ENTER = "IN"
+    LEAVE = "OUT"
+
+    def __str__(self) -> str:
+        return "->" if self == Direction.ENTER else "<-"
 
 
 class AccessEntry(pydantic.BaseModel):
     name: str
-    building: str
     time: DateTime
+    building: str
+    direction: Direction
 
     def __str__(self) -> str:
-        time = self.time.strftime("%Y-%m-%d %H:%M:%S")
-        return f"{self.name} -> {self.building} at {time}"
+        time = self.time.strftime("%s")
+        return f"{time}: {self.name} {self.direction} {self.building}"
 
 
 class Problem(problem_utils.Problem):
-    accesses: dict[str, list[DateTime]] = {}
     suspects: list[str] = []
     access_log: list[AccessEntry] = []
-    building_list = open(BUILDING_LIST_FILE, "r").read().splitlines()
+    crime_entry: tuple[AccessEntry, AccessEntry]
 
     def __init__(self, seed=0) -> None:
         super().__init__(seed)
+        names = self.random_names(k=PEOPLE)
 
-        for _ in range(PEOPLE):
-            while True:
-                name = generate_name(self.rand)
-                if name not in self.accesses:
-                    break
-            self.accesses[name] = []
+        times: dict[str, DateTime] = {}
+        while len(self.access_log) < ENTRIES:
+            name = self.rand.choice(names)
+            min_time = times.get(
+                name,
+                MIN_TIME + TimeDelta(hours=self.rand.random() * 24),
+            )
 
-        names = self.names()
+            enter_time = min_time
+            leave_time = min_time + TimeDelta(hours=self.rand.random() * 24)
+            times[name] = leave_time + TimeDelta(hours=self.rand.random() * 24)
+
+            entrance = AccessEntry(
+                name=name,
+                time=enter_time,
+                building=self.rand.choice(BUILDINGS),
+                direction=Direction.ENTER,
+            )
+
+            exit = AccessEntry(
+                name=name,
+                time=leave_time,
+                building=entrance.building,
+                direction=Direction.LEAVE,
+            )
+
+            self.access_log.append(entrance)
+            self.access_log.append(exit)
 
         # The accomplices will have the same entry times.
-        # It will always be in December.
-        crime_time = generate_time(
-            self.rand,
-            min_time=DateTime(2023, 12, 1),
+        # It will always be in December, but it can't overlap with existing entries.
+        while True:
+            crime_entry_ix = self.rand.randrange(0, len(self.access_log), 2)
+            crime_entrance = self.access_log[crime_entry_ix]
+            if crime_entrance.time.month == 12:
+                break
+
+        debug(f"Crime entry: {crime_entrance=}")
+
+        # Delete the leave entry of the criminal.
+        crime_exit = self.access_log[crime_entry_ix + 1]
+        assert crime_exit.direction == Direction.LEAVE
+        debug(f"Removing {crime_exit=}")
+        self.access_log.pop(crime_entry_ix + 1)
+
+        self.crime_entry = (crime_entrance, crime_exit)
+
+    def random_time(
+        self,
+        min_time: DateTime,
+        max_time: DateTime,
+    ) -> DateTime:
+        assert min_time < max_time
+        min_unix = int(min_time.strftime("%s"))
+        max_unix = int(max_time.strftime("%s"))
+        # Randomize then convert back to a Date. This truncates the time.
+        return DateTime.fromtimestamp(
+            self.rand.randint(min_unix, max_unix), tz=TIMEZONE
         )
-        accomplices = self.rand.sample(names, k=self.rand.randint(6, 12))
 
-        for _ in range(ENTRIES):
-            name = self.rand.choice(names)
+    def random_time_within_day(self, date: Date) -> DateTime:
+        min_time = DateTime(date.year, date.month, date.day, tzinfo=TIMEZONE)
+        max_time = min_time + TimeDelta(days=1)
+        return self.random_time(min_time, max_time)
 
-            if name in accomplices and self.coin_flip(0.25):
-                time = crime_time
-            else:
-                time = generate_time(self.rand)
-
-            entry = AccessEntry(
-                name=name,
-                time=time,
-                building=self.rand.choice(self.building_list),
-            )
-
-            self.access_log.append(entry)
-            self.accesses[name].append(time)
-
-    def names(self) -> list[str]:
-        return list(self.accesses.keys())
+    def random_names(self, k: int) -> list[str]:
+        return [
+            generate_name(i) for i in self.rand.sample(range(NAME_MIN_I, NAME_MAX_I), k)
+        ]
 
     def generate_input(self, output: typing.IO | None = None):
-        for entry in self.access_log:
+        for entry in self.rand.sample(self.access_log, len(self.access_log)):
             print(entry, file=output)
 
+    """
+    Part 1: There is an entrance entry that is missing its exit entry. What is
+    the time of the entrance entry in unix time?
+
+    Part 2: Everyone who entered on the same day as the criminal is a suspect.
+    What's the number of entrances that happened on that day, multiplied by the
+    number of suspects?
+    """
+
     def part1_answer(self):
-        return len(
-            list(
-                filter(
-                    lambda e: e.time.month == 12,
-                    self.access_log,
-                )
-            )
-        )
+        return int(self.crime_entry[0].time.strftime("%s"))
 
     def part2_answer(self):
-        def slow_solution():
-            encounters: list[AccessEntry] = []
-            accomplices: list[str] = []
-            for i in range(len(self.access_log)):
-                a = self.access_log[i]
-                is_crime = False
-                for j in range(len(self.access_log)):
-                    if i == j:
-                        continue
-                    b = self.access_log[j]
-                    if a.time == b.time:
-                        is_crime = True
-                        break
-                if is_crime:
-                    encounters.append(a)
-                    if a.name not in accomplices:
-                        accomplices.append(a.name)
-            return len(encounters) * len(accomplices)
-
-        def fast_solution():
-            log_set: dict[str, list[AccessEntry]] = {}
-            for entry in self.access_log:
-                key = f"{entry.time}"
-                encountered = log_set.get(key, [])
-                encountered.append(entry)
-                log_set[key] = encountered
-
-            counts = sorted(
-                [len(entries) for entries in log_set.values()],
-                reverse=True,
-            )
-            colluded_items = counts[:2]
-            collided_entries = [
-                entry
-                for entries in log_set.values()
-                if len(entries) in colluded_items
-                for entry in entries
-            ]
-
-            logging.debug("\n".join([str(e) for e in collided_entries]))
-            accomplices = set([entries.name for entries in collided_entries])
-            return len(collided_entries) * len(accomplices)
-
-        # return problem_utils.run_fast_slow(fast_solution, slow_solution)
-        return fast_solution()
+        crime_date = self.crime_entry[0].time.date()
+        entrances = [
+            entry
+            for entry in self.access_log
+            if entry.time.date() == crime_date and entry.direction == Direction.ENTER
+        ]
+        suspects = set(entry.name for entry in entrances)
+        debug(f"{len(suspects)=} {len(entrances)=}")
+        return len(entrances) * len(suspects)
 
 
-def generate_name(rand: random.Random) -> str:
-    VOWELS = "aeiou"
-    CONSONANTS = "bcdfghjklmnpqrstvwxyz"
+VOWELS = "aeiou"
+CONSONANTS = "bcdfghjklmnpqrstvwxyz"
+
+# rule: cvcc
+NAME_RULE = [CONSONANTS, VOWELS, CONSONANTS, CONSONANTS]
+NAME_MIN_I = 0
+NAME_MAX_I = math.prod([len(r) for r in NAME_RULE])
+NAME_MULTIPLES = [
+    # [v * c * c, c * c, c, 1]
+    math.prod([len(r) for r in NAME_RULE[i + 1 :]])
+    for i in range(0, len(NAME_RULE))
+]
+
+
+def generate_name(i: int) -> str:
+    """
+    Generate a name based on the index i. This is used to generate a unique name
+    using random numbers.
+    """
+    assert NAME_MIN_I <= i < NAME_MAX_I
     return "".join(
-        rand.choices(CONSONANTS, k=1)
-        + rand.choices(VOWELS, k=1)
-        + rand.choices(CONSONANTS, k=2)
-    )
-
-
-def generate_time(
-    rand: random.Random,
-    min_time: DateTime | None = None,
-    max_time: DateTime | None = None,
-) -> DateTime:
-    min_time = max(min_time, MIN_TIME) if min_time else MIN_TIME
-    max_time = min(max_time, MAX_TIME) if max_time else MAX_TIME
-
-    assert min_time < max_time
-    assert min_time >= MIN_TIME
-    assert max_time <= MAX_TIME
-
-    return DateTime.fromtimestamp(
-        rand.randint(
-            round(min_time.timestamp()),
-            round(max_time.timestamp()),
-        )
+        NAME_RULE[j][i // NAME_MULTIPLES[j] % len(NAME_RULE[j])]
+        for j in range(0, len(NAME_RULE))
     )
 
 
